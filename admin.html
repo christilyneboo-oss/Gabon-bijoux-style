@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administration — Gabon Bijoux Style</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="minimal-nav">
+  <div class="menu-wrap">
+    <button type="button" class="menu-btn" aria-label="Menu">☰</button>
+    <div class="menu-panel" id="menu-panel">
+      <a href="index.html">Accueil</a>
+      <a href="boutique.html">Boutique</a>
+      <a href="apropos.html">À propos</a>
+      <a href="contact.html">Contact</a>
+      <a href="compte.html">Compte</a>
+      <a href="admin.html">Admin</a>
+      <a href="commander.html">Commander</a>
+    </div>
+  </div>
+  <div class="brand-lockup">
+    <div class="brand-name brand-name-short">GBS</div>
+  </div>
+  <div class="nav-action-icons">
+    <button type="button" class="icon-btn icon-search" aria-label="Rechercher">⌕</button>
+    <a href="boutique.html" class="icon-btn icon-cart" aria-label="Panier">🛍</a>
+  </div>
+</nav>
+
+<section class="page-header">
+  <div class="eyebrow">Admin</div>
+  <h1>Gestion boutique</h1>
+</section>
+
+<section id="admin-shell">
+  <div class="admin-layout">
+    <div class="admin-card">
+      <h3>Ajouter / modifier un bijou</h3>
+      <p id="admin-message" style="margin-bottom:1rem;"></p>
+      <form id="admin-product-form" class="admin-form">
+        <input id="product-id" type="hidden">
+        <input id="product-name" type="text" placeholder="Nom du bijou" required>
+        <input id="product-category" type="text" placeholder="Catégorie" required>
+        <input id="product-price" type="number" min="0" placeholder="Prix en FCFA" required>
+        <textarea id="product-description" rows="4" placeholder="Description"></textarea>
+        <input id="product-image" type="text" placeholder="Chemin de l'image (ex: images/produit-1.jpg)">
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+      </form>
+    </div>
+
+    <div class="admin-card">
+      <h3>Produits enregistrés</h3>
+      <div id="admin-product-list" class="admin-list"></div>
+    </div>
+
+    <div class="admin-card" style="margin-top: 1.5rem;">
+      <h3>Commandes clients</h3>
+      <div id="admin-order-list" class="admin-list"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-bottom">
+    <span>© 2026 Gabon Bijoux Style</span>
+    <span>Administration</span>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

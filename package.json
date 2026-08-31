@@ -1,0 +1,14 @@
+{
+  "name": "gabon-bijoux-style",
+  "version": "1.0.0",
+  "description": "Boutique de bijoux avec comptes clients et gestion admin",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "sqlite3": "^6.0.1"
+  }
+}

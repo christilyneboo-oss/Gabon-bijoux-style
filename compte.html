@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compte client — Gabon Bijoux Style</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="minimal-nav">
+  <div class="menu-wrap">
+    <button type="button" class="menu-btn" aria-label="Menu">☰</button>
+    <div class="menu-panel" id="menu-panel">
+      <a href="index.html">Accueil</a>
+      <a href="boutique.html">Boutique</a>
+      <a href="apropos.html">À propos</a>
+      <a href="contact.html">Contact</a>
+      <a href="compte.html">Compte</a>
+      <a href="admin.html">Admin</a>
+      <a href="commander.html">Commander</a>
+    </div>
+  </div>
+  <div class="brand-lockup">
+    <div class="brand-name brand-name-short">GBS</div>
+  </div>
+  <div class="nav-action-icons">
+    <button type="button" class="icon-btn icon-search" aria-label="Rechercher">⌕</button>
+    <a href="boutique.html" class="icon-btn icon-cart" aria-label="Panier">🛍</a>
+  </div>
+</nav>
+
+<section class="page-header">
+  <div class="eyebrow">Compte</div>
+  <h1>Mon espace</h1>
+</section>
+
+<section>
+  <div class="auth-layout">
+    <div class="auth-card">
+      <h3>Créer un compte</h3>
+      <form id="register-form" class="auth-form">
+        <input id="register-name" type="text" placeholder="Nom complet" required>
+        <input id="register-email" type="email" placeholder="Email" required>
+        <input id="register-password" type="password" placeholder="Mot de passe" required>
+        <button type="submit" class="btn btn-primary">S'inscrire</button>
+      </form>
+    </div>
+
+    <div class="auth-card">
+      <h3>Connexion</h3>
+      <form id="login-form" class="auth-form">
+        <input id="login-email" type="email" placeholder="Email" required>
+        <input id="login-password" type="password" placeholder="Mot de passe" required>
+        <button type="submit" class="btn btn-primary">Se connecter</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="account-panel" style="margin-top:2rem;">
+    <h3 class="account-status">Compte</h3>
+    <div class="user-profile"></div>
+    <button id="logout-btn" class="btn btn-ghost" style="margin-top:1rem;">Se déconnecter</button>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-bottom">
+    <span>© 2026 Gabon Bijoux Style</span>
+    <span>Votre compte • votre boutique</span>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

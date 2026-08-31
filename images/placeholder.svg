@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
+  <rect width="400" height="400" fill="#EDE7D8"/>
+  <g transform="translate(200,200)">
+    <polygon points="0,-70 55,-20 0,90 -55,-20" fill="none" stroke="#C6A15B" stroke-width="2.5"/>
+    <polygon points="-55,-20 0,-70 55,-20" fill="none" stroke="#C6A15B" stroke-width="2.5"/>
+    <line x1="-27" y1="-45" x2="0" y2="-70" stroke="#C6A15B" stroke-width="1.4"/>
+    <line x1="27" y1="-45" x2="0" y2="-70" stroke="#C6A15B" stroke-width="1.4"/>
+    <line x1="-55" y1="-20" x2="0" y2="90" stroke="#C6A15B" stroke-width="1.4"/>
+    <line x1="55" y1="-20" x2="0" y2="90" stroke="#C6A15B" stroke-width="1.4"/>
+  </g>
+  <text x="200" y="340" text-anchor="middle" font-family="monospace" font-size="12" fill="#C6A15B" letter-spacing="2">PHOTO A VENIR</text>
+</svg>
