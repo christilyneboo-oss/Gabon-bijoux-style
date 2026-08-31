@@ -165,6 +165,32 @@ function bindAdminPanel() {
   const adminForm = document.getElementById('admin-product-form');
   const productList = document.getElementById('admin-product-list');
   const orderList = document.getElementById('admin-order-list');
+  const imageInputFile = document.getElementById('product-image-file');
+  const imageInputHidden = document.getElementById('product-image');
+  const imagePreview = document.getElementById('product-image-preview');
+
+  function updateImagePreview(imageValue) {
+    if (!imagePreview) return;
+    const nextValue = imageValue || 'images/placeholder.svg';
+    imagePreview.src = nextValue;
+    imagePreview.onerror = () => {
+      imagePreview.src = 'images/placeholder.svg';
+    };
+    if (imageInputHidden) imageInputHidden.value = nextValue;
+  }
+
+  if (imageInputFile) {
+    imageInputFile.addEventListener('change', async (event) => {
+      const [file] = event.target.files || [];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        updateImagePreview(String(reader.result || 'images/placeholder.svg'));
+      };
+      reader.readAsDataURL(file);
+    });
+  }
 
   if (!currentUser || currentUser.role !== 'admin') {
     if (adminMessage) adminMessage.textContent = 'Accès refusé. Connectez-vous avec un compte administrateur.';
@@ -213,7 +239,8 @@ function bindAdminPanel() {
           document.getElementById('product-category').value = product.category;
           document.getElementById('product-price').value = product.price;
           document.getElementById('product-description').value = product.description;
-          document.getElementById('product-image').value = product.image;
+          updateImagePreview(product.image || 'images/placeholder.svg');
+          if (imageInputFile) imageInputFile.value = '';
         } catch (error) {
           alert(error.message);
         }
@@ -308,6 +335,8 @@ function bindAdminPanel() {
         });
         adminForm.reset();
         document.getElementById('product-id').value = '';
+        updateImagePreview('images/placeholder.svg');
+        if (imageInputFile) imageInputFile.value = '';
         const products = await fetchJson('/api/products');
         renderAdminList(products);
         renderProductCards();
@@ -317,6 +346,8 @@ function bindAdminPanel() {
       }
     });
   }
+
+  updateImagePreview(imageInputHidden ? imageInputHidden.value : 'images/placeholder.svg');
 
   fetchJson('/api/orders')
     .then(renderOrderList)

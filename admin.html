@@ -46,7 +46,16 @@
         <input id="product-category" type="text" placeholder="Catégorie" required>
         <input id="product-price" type="number" min="0" placeholder="Prix en FCFA" required>
         <textarea id="product-description" rows="4" placeholder="Description"></textarea>
-        <input id="product-image" type="text" placeholder="Chemin de l'image (ex: images/produit-1.jpg)">
+
+        <div class="image-upload-block">
+          <label for="product-image-file" class="image-upload-label">Photo du bijou</label>
+          <input id="product-image-file" type="file" accept="image/*" capture="environment">
+          <div class="image-preview-wrap">
+            <img id="product-image-preview" src="images/placeholder.svg" alt="Aperçu image" onerror="this.src='images/placeholder.svg'">
+          </div>
+          <input id="product-image" type="hidden" value="images/placeholder.svg">
+        </div>
+
         <button type="submit" class="btn btn-primary">Enregistrer</button>
       </form>
     </div>
