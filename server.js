@@ -41,6 +41,13 @@ const all = (sql, params = []) => new Promise((resolve, reject) => {
   });
 });
 
+async function ensureColumn(tableName, columnName, columnDefinition) {
+  const columns = await all(`PRAGMA table_info(${tableName})`);
+  if (!columns.some((column) => column.name === columnName)) {
+    await run(`ALTER TABLE ${tableName} ADD COLUMN ${columnDefinition}`);
+  }
+}
+
 async function initDatabase() {
   await run(`
     CREATE TABLE IF NOT EXISTS users (
@@ -51,6 +58,8 @@ async function initDatabase() {
       role TEXT NOT NULL DEFAULT 'user'
     )
   `);
+
+  await ensureColumn('users', 'role', 'role TEXT NOT NULL DEFAULT "user"');
 
   await run(`
     CREATE TABLE IF NOT EXISTS products (
@@ -77,6 +86,14 @@ async function initDatabase() {
       FOREIGN KEY(user_id) REFERENCES users(id)
     )
   `);
+
+  await ensureColumn('orders', 'customer_name', 'customer_name TEXT');
+  await ensureColumn('orders', 'customer_phone', 'customer_phone TEXT');
+  await ensureColumn('orders', 'city', 'city TEXT');
+  await ensureColumn('orders', 'message', 'message TEXT');
+  await ensureColumn('orders', 'total', 'total INTEGER NOT NULL DEFAULT 0');
+  await ensureColumn('orders', 'status', 'status TEXT NOT NULL DEFAULT "pending"');
+  await ensureColumn('orders', 'created_at', 'created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP');
 
   await run(`
     CREATE TABLE IF NOT EXISTS order_items (
