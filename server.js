@@ -122,18 +122,37 @@ async function initDatabase() {
     }
   }
 
-  const existingProducts = await get('SELECT COUNT(*) AS total FROM products');
-  if (!existingProducts || Number(existingProducts.total) === 0) {
-    const defaultProducts = [
-      ['Collier Nyare', 'Collier', 18000, 'Collier fin en acier inoxydable, lumineux et facile à porter.', 'images/produit-1.jpg'],
-      ['Bracelet Okoumé', 'Bracelet', 12500, 'Bracelet élégant au design moderne et discret.', 'images/produit-2.jpg'],
-      ['Boucles Ogooué', 'Boucles d’oreilles', 9000, 'Boucles d’oreilles raffinées pour un look chic au quotidien.', 'images/produit-3.jpg']
-    ];
+  const existingProducts = await all('SELECT * FROM products');
+  const legacyProductNames = [
+    'Collier Nyare',
+    'Bracelet Okoumé',
+    'Boucles Ogooué',
+    'Bague Lambaréné',
+    'Chaîne Mandji',
+    'Bracelet Duo'
+  ];
 
-    for (const product of defaultProducts) {
-      await run('INSERT INTO products (name, category, price, description, image) VALUES (?, ?, ?, ?, ?)', product);
+  if (Array.isArray(existingProducts) && existingProducts.length > 0) {
+    const staleProductIds = existingProducts
+      .filter((product) => legacyProductNames.some((name) => product.name && product.name.toLowerCase() === name.toLowerCase()))
+      .map((product) => product.id);
+
+    if (staleProductIds.length > 0) {
+      await run(`DELETE FROM products WHERE id IN (${staleProductIds.map(() => '?').join(', ')})`, staleProductIds);
     }
   }
+
+  const activeProducts = await all('SELECT * FROM products');
+  if (Array.isArray(activeProducts) && activeProducts.length > 0) {
+    const otherProductIds = activeProducts.map((product) => product.id);
+    if (otherProductIds.length > 0) {
+      await run(`DELETE FROM products WHERE id IN (${otherProductIds.map(() => '?').join(', ')})`, otherProductIds);
+    }
+  }
+}
+
+function LegacyProductNamesDefined(existingProducts, legacyProductNames) {
+  return !!(existingProducts && Number(existingProducts.total) > 0 && legacyProductNames.length);
 }
 
 app.use(express.json({ limit: '1mb' }));

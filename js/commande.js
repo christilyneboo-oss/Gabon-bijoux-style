@@ -65,60 +65,31 @@ if (form) {
     const telephone = document.getElementById('telephone').value.trim();
     const ville = document.getElementById('ville').value.trim();
     const produitSelect = document.getElementById('produit');
-    const produitValue = produitSelect ? produitSelect.value : '';
     const quantite = Number(document.getElementById('quantite').value || 1);
     const message = document.getElementById('message').value.trim();
 
-    if (!nom || !telephone || !produitValue) {
-      alert('Merci de remplir au moins le nom, le téléphone et le produit souhaité.');
+    if (!nom || !telephone) {
+      alert('Merci de remplir au moins le nom et le téléphone.');
       return;
     }
 
-    const currentUser = getCurrentUser();
-    const selectedProduct = produitSelect.selectedOptions[0];
-    const productId = selectedProduct && selectedProduct.value !== 'custom' ? Number(selectedProduct.value) : null;
-    const productName = selectedProduct ? (selectedProduct.dataset.name || selectedProduct.textContent.replace(/\s*—.*$/, '')) : 'Produit';
+    const selectedProduct = produitSelect && produitSelect.selectedOptions[0];
+    const productName = selectedProduct && selectedProduct.dataset.name
+      ? selectedProduct.dataset.name
+      : 'Produit à confirmer';
     const productPrice = Number(selectedProduct?.dataset.price || 0);
 
-    const payload = {
-      userId: currentUser ? currentUser.id : null,
-      name: nom,
-      telephone,
-      city: ville,
-      message,
-      items: [{
-        productId: productId || 0,
-        quantity: quantite,
-        price: productPrice || 0,
-        name: productName
-      }]
-    };
+    let texte = 'Bonjour Gabon Bijoux Style, je souhaite commander :\n';
+    texte += `— Produit : ${productName}\n`;
+    texte += `— Quantité : ${quantite}\n`;
+    texte += `— Nom : ${nom}\n`;
+    texte += `— Téléphone : ${telephone}\n`;
+    if (ville) texte += `— Ville : ${ville}\n`;
+    if (productPrice > 0) texte += `— Prix estimé : ${new Intl.NumberFormat('fr-FR').format(productPrice)} FCFA\n`;
+    if (message) texte += `— Message : ${message}\n`;
 
-    try {
-      const savedOrder = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      }).then((response) => response.json());
-
-      if (!savedOrder || savedOrder.error) {
-        throw new Error(savedOrder?.error || 'Impossible d’enregistrer la commande.');
-      }
-
-      let texte = `Bonjour Gabon Bijoux Style, je souhaite commander :\n`;
-      texte += `— Produit : ${productName}\n`;
-      texte += `— Quantité : ${quantite}\n`;
-      texte += `— Nom : ${nom}\n`;
-      texte += `— Téléphone : ${telephone}\n`;
-      if (ville) texte += `— Ville : ${ville}\n`;
-      if (message) texte += `— Message : ${message}\n`;
-      texte += `— N° commande : ${savedOrder.id}\n`;
-
-      const lienWhatsApp = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(texte)}`;
-      window.open(lienWhatsApp, '_blank');
-      alert('Commande enregistrée avec succès.');
-    } catch (error) {
-      alert(error.message || 'Une erreur est survenue pendant la commande.');
-    }
+    const lienWhatsApp = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(texte)}`;
+    window.open(lienWhatsApp, '_blank');
+    alert('Votre commande a été préparée sur WhatsApp. Envoyez simplement le message pour finaliser.');
   });
 }
