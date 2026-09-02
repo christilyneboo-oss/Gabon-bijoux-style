@@ -369,6 +369,21 @@ function bindAdminPanel() {
     });
 }
 
+function setupAdminMenuLink() {
+  const currentUser = getCurrentUser();
+  if (!currentUser || currentUser.role !== 'admin') return;
+
+  document.querySelectorAll('.menu-panel').forEach((panel) => {
+    if (panel.querySelector('[data-role="admin-nav"]')) return;
+
+    const adminLink = document.createElement('a');
+    adminLink.href = 'admin.html';
+    adminLink.dataset.role = 'admin-nav';
+    adminLink.textContent = 'Gestion boutique';
+    panel.appendChild(adminLink);
+  });
+}
+
 function setupBurgerMenu() {
   const burger = document.querySelector('.menu-btn');
   const menuPanel = document.querySelector('.menu-panel');
@@ -404,6 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
   renderProductCards();
   bindAuthForms();
   bindAdminPanel();
+  setupAdminMenuLink();
   setupBurgerMenu();
   setupObserver();
 });
