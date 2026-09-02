@@ -67,10 +67,13 @@ async function initDatabase() {
       name TEXT NOT NULL,
       category TEXT NOT NULL,
       price INTEGER NOT NULL,
+      stock INTEGER NOT NULL DEFAULT 0,
       description TEXT DEFAULT '',
       image TEXT DEFAULT 'images/placeholder.svg'
     )
   `);
+
+  await ensureColumn('products', 'stock', 'stock INTEGER NOT NULL DEFAULT 0');
 
   await run(`
     CREATE TABLE IF NOT EXISTS orders (
@@ -251,15 +254,15 @@ app.post('/api/login', async (req, res) => {
 });
 
 app.post('/api/products', async (req, res) => {
-  const { name, category, price, description, image } = req.body || {};
+  const { name, category, price, stock, description, image } = req.body || {};
   if (!name || !category || !price) {
     return res.status(400).json({ error: 'Nom, catégorie et prix obligatoires.' });
   }
 
   try {
     const productResult = await run(
-      'INSERT INTO products (name, category, price, description, image) VALUES (?, ?, ?, ?, ?)',
-      [String(name).trim(), String(category).trim(), Number(price), String(description || ''), String(image || 'images/placeholder.svg')]
+      'INSERT INTO products (name, category, price, stock, description, image) VALUES (?, ?, ?, ?, ?, ?)',
+      [String(name).trim(), String(category).trim(), Number(price), Number(stock || 0), String(description || ''), String(image || 'images/placeholder.svg')]
     );
 
     const product = await get('SELECT * FROM products WHERE id = ?', [productResult.id]);
@@ -271,7 +274,7 @@ app.post('/api/products', async (req, res) => {
 
 app.put('/api/products/:id', async (req, res) => {
   const { id } = req.params;
-  const { name, category, price, description, image } = req.body || {};
+  const { name, category, price, stock, description, image } = req.body || {};
   if (!name || !category || !price) {
     return res.status(400).json({ error: 'Nom, catégorie et prix obligatoires.' });
   }
@@ -283,8 +286,8 @@ app.put('/api/products/:id', async (req, res) => {
     }
 
     await run(
-      'UPDATE products SET name = ?, category = ?, price = ?, description = ?, image = ? WHERE id = ?',
-      [String(name).trim(), String(category).trim(), Number(price), String(description || ''), String(image || 'images/placeholder.svg'), Number(id)]
+      'UPDATE products SET name = ?, category = ?, price = ?, stock = ?, description = ?, image = ? WHERE id = ?',
+      [String(name).trim(), String(category).trim(), Number(price), Number(stock || 0), String(description || ''), String(image || 'images/placeholder.svg'), Number(id)]
     );
 
     const updated = await get('SELECT * FROM products WHERE id = ?', [id]);

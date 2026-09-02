@@ -163,6 +163,7 @@ function bindAdminPanel() {
   const currentUser = getCurrentUser();
   const adminMessage = document.getElementById('admin-message');
   const adminForm = document.getElementById('admin-product-form');
+  const newProductBtn = document.getElementById('admin-new-product-btn');
   const productList = document.getElementById('admin-product-list');
   const orderList = document.getElementById('admin-order-list');
   const imageInputFile = document.getElementById('product-image-file');
@@ -206,7 +207,7 @@ function bindAdminPanel() {
       <div class="admin-item">
         <div>
           <strong>${product.name}</strong>
-          <p>${product.category} • ${formatPrice(product.price)}</p>
+          <p>${product.category} • ${formatPrice(product.price)} • Stock : ${Number(product.stock || 0)}</p>
         </div>
         <div class="admin-actions">
           <button type="button" data-edit="${product.id}" class="btn btn-small btn-primary">Modifier</button>
@@ -238,6 +239,7 @@ function bindAdminPanel() {
           document.getElementById('product-name').value = product.name;
           document.getElementById('product-category').value = product.category;
           document.getElementById('product-price').value = product.price;
+          document.getElementById('product-stock').value = Number(product.stock || 0);
           document.getElementById('product-description').value = product.description;
           updateImagePreview(product.image || 'images/placeholder.svg');
           if (imageInputFile) imageInputFile.value = '';
@@ -303,6 +305,16 @@ function bindAdminPanel() {
     });
   }
 
+  if (newProductBtn) {
+    newProductBtn.addEventListener('click', () => {
+      adminForm.reset();
+      document.getElementById('product-id').value = '';
+      updateImagePreview('images/placeholder.svg');
+      if (imageInputFile) imageInputFile.value = '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+  }
+
   if (adminForm) {
     fetchJson('/api/products')
       .then(renderAdminList)
@@ -317,6 +329,7 @@ function bindAdminPanel() {
         name: document.getElementById('product-name').value.trim(),
         category: document.getElementById('product-category').value.trim(),
         price: Number(document.getElementById('product-price').value),
+        stock: Number(document.getElementById('product-stock').value || 0),
         description: document.getElementById('product-description').value.trim(),
         image: document.getElementById('product-image').value.trim() || 'images/placeholder.svg'
       };

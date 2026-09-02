@@ -40,11 +40,15 @@
     <div class="admin-card">
       <h3>Ajouter / modifier un bijou</h3>
       <p id="admin-message" style="margin-bottom:1rem;"></p>
+      <div style="margin-bottom:1rem;">
+        <button type="button" id="admin-new-product-btn" class="btn btn-ghost">Ajouter un article</button>
+      </div>
       <form id="admin-product-form" class="admin-form">
         <input id="product-id" type="hidden">
         <input id="product-name" type="text" placeholder="Nom du bijou" required>
         <input id="product-category" type="text" placeholder="Catégorie" required>
         <input id="product-price" type="number" min="0" placeholder="Prix en FCFA" required>
+        <input id="product-stock" type="number" min="0" placeholder="Stock disponible" required>
         <textarea id="product-description" rows="4" placeholder="Description"></textarea>
 
         <div class="image-upload-block">
