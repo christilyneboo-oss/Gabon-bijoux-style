@@ -145,13 +145,6 @@ async function initDatabase() {
     }
   }
 
-  const activeProducts = await all('SELECT * FROM products');
-  if (Array.isArray(activeProducts) && activeProducts.length > 0) {
-    const otherProductIds = activeProducts.map((product) => product.id);
-    if (otherProductIds.length > 0) {
-      await run(`DELETE FROM products WHERE id IN (${otherProductIds.map(() => '?').join(', ')})`, otherProductIds);
-    }
-  }
 }
 
 function LegacyProductNamesDefined(existingProducts, legacyProductNames) {
