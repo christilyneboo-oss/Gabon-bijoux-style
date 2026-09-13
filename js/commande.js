@@ -94,22 +94,57 @@ if (form) {
     }
 
     const selectedProduct = produitSelect && produitSelect.selectedOptions[0];
+    const productId = Number(selectedProduct?.value || 0);
     const productName = selectedProduct && selectedProduct.dataset.name
       ? selectedProduct.dataset.name
       : 'Produit à confirmer';
     const productPrice = Number(selectedProduct?.dataset.price || 0);
 
-    let texte = 'Bonjour Gabon Bijoux Style, je souhaite commander :\n';
-    texte += `— Produit : ${productName}\n`;
-    texte += `— Quantité : ${quantite}\n`;
-    texte += `— Nom : ${nom}\n`;
-    texte += `— Téléphone : ${telephone}\n`;
-    if (ville) texte += `— Ville : ${ville}\n`;
-    if (productPrice > 0) texte += `— Prix estimé : ${new Intl.NumberFormat('fr-FR').format(productPrice)} FCFA\n`;
-    if (message) texte += `— Message : ${message}\n`;
+    if (!productId) {
+      alert('Veuillez sélectionner un produit avant de passer commande.');
+      return;
+    }
 
-    const lienWhatsApp = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(texte)}`;
-    window.open(lienWhatsApp, '_blank');
-    alert('Votre commande a été préparée sur WhatsApp. Envoyez simplement le message pour finaliser.');
+    try {
+      const response = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: currentUser.id,
+          name: nom,
+          telephone,
+          city: ville,
+          message,
+          items: [{
+            productId,
+            quantity: quantite,
+            price: productPrice
+          }]
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || 'La commande n’a pas pu être enregistrée.');
+      }
+
+      let texte = 'Bonjour Gabon Bijoux Style, je souhaite confirmer ma commande :\n';
+      texte += `— Commande : #${data.id}\n`;
+      texte += `— Produit : ${productName}\n`;
+      texte += `— Quantité : ${quantite}\n`;
+      texte += `— Nom : ${nom}\n`;
+      texte += `— Téléphone : ${telephone}\n`;
+      if (ville) texte += `— Ville : ${ville}\n`;
+      if (productPrice > 0) texte += `— Prix estimé : ${new Intl.NumberFormat('fr-FR').format(productPrice)} FCFA\n`;
+      if (message) texte += `— Message : ${message}\n`;
+      texte += `— Facture : ${data.invoiceNumber || 'À générer'}\n`;
+
+      const lienWhatsApp = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(texte)}`;
+      window.open(lienWhatsApp, '_blank');
+      alert('Commande enregistrée. Vous pouvez suivre son statut dans votre compte.');
+      window.location.href = 'compte.html';
+    } catch (error) {
+      alert(error.message);
+    }
   });
 }

@@ -25,6 +25,19 @@ function formatPrice(value) {
   return new Intl.NumberFormat('fr-FR').format(value) + ' FCFA';
 }
 
+function formatDateTime(value) {
+  if (!value) return 'Date inconnue';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date);
+}
+
 async function fetchJson(url, options = {}) {
   const response = await fetch(url, {
     headers: { 'Content-Type': 'application/json' },
@@ -315,6 +328,7 @@ function renderUserOrders(orders) {
             <strong>Commande #${order.id}</strong>
             <span class="invoice-badge">${order.invoice_number || 'Facture en cours'}</span>
           </div>
+          <p><strong>Passée le :</strong> ${formatDateTime(order.created_at)}</p>
           <p>${getStatusLabel(status)}</p>
           <div class="tracking-steps">
             ${statusOrder.map((step, index) => `
@@ -608,6 +622,7 @@ function bindAdminPanel() {
           <div>
             <strong>Commande #${order.id}</strong>
             <p>${order.customer_name || 'Client'} • ${order.customer_phone || 'Sans téléphone'}</p>
+            <p>Commande le : ${formatDateTime(order.created_at)}</p>
             <p>${order.city || 'Ville non précisée'} • ${formatPrice(order.total)}</p>
             <p>Facture : ${order.invoice_number || 'À générer'}</p>
             <p>Statut : ${statusLabels[orderStatus] || orderStatus}</p>
