@@ -736,6 +736,9 @@ function bindAdminPanel() {
 }
 
 function setupTrackingMenuLink() {
+  const isAdminPage = window.location.pathname.endsWith('/admin.html') || window.location.pathname.endsWith('admin.html');
+  if (isAdminPage) return;
+
   document.querySelectorAll('.menu-panel').forEach((panel) => {
     if (panel.querySelector('[data-role="tracking-nav"]')) return;
 
