@@ -2,6 +2,11 @@ const STORAGE_KEYS = {
   currentUser: 'gabon_bijoux_current_user'
 };
 
+const DEFAULT_DELIVERY = {
+  name: 'Livreur GBS',
+  phone: '+241 06 00 00 00'
+};
+
 let currentCatalogFilter = 'Tous';
 let currentCatalogSearch = '';
 
@@ -36,6 +41,18 @@ function formatDateTime(value) {
     hour: '2-digit',
     minute: '2-digit'
   }).format(date);
+}
+
+function getDeliveryInfo(order) {
+  const name = order?.delivery_name || DEFAULT_DELIVERY.name;
+  const phone = order?.delivery_phone || DEFAULT_DELIVERY.phone;
+  return { name, phone };
+}
+
+function buildCourierLink(phone) {
+  const cleanPhone = String(phone || '').replace(/\s+/g, '').replace(/[^+\d]/g, '');
+  if (!cleanPhone) return '#';
+  return `tel:${cleanPhone}`;
 }
 
 async function fetchJson(url, options = {}) {
@@ -329,7 +346,7 @@ function renderUserOrders(orders) {
             <span class="invoice-badge">${order.invoice_number || 'Facture en cours'}</span>
           </div>
           <p><strong>Passée le :</strong> ${formatDateTime(order.created_at)}</p>
-          <p><strong>Livreur :</strong> ${order.delivery_name || 'Livreur GBS'}</p>
+          <p><strong>Livreur :</strong> ${getDeliveryInfo(order).name} • <a href="${buildCourierLink(getDeliveryInfo(order).phone)}">${getDeliveryInfo(order).phone}</a></p>
           <p>${getStatusLabel(status)}</p>
           <div class="tracking-steps">
             ${statusOrder.map((step, index) => `
@@ -344,6 +361,7 @@ function renderUserOrders(orders) {
             <ul>${items || '<li>Produit unique</li>'}</ul>
             <p><strong>Total :</strong> ${formatPrice(Number(order.total || 0))}</p>
             <p><strong>Livraison :</strong> ${order.city || 'Ville non précisée'}</p>
+            <p><strong>Suivi :</strong> <a href="suivi.html?id=${order.id}">Voir le suivi complet</a></p>
           </div>
 
           <div class="rating-box">
@@ -625,7 +643,7 @@ function bindAdminPanel() {
             <p>${order.customer_name || 'Client'} • ${order.customer_phone || 'Sans téléphone'}</p>
             <p>Commande le : ${formatDateTime(order.created_at)}</p>
             <p>${order.city || 'Ville non précisée'} • ${formatPrice(order.total)}</p>
-            <p>Livreur : ${order.delivery_name || 'Livreur GBS'}</p>
+            <p>Livreur : ${getDeliveryInfo(order).name} • ${getDeliveryInfo(order).phone}</p>
             <p>Facture : ${order.invoice_number || 'À générer'}</p>
             <p>Statut : ${statusLabels[orderStatus] || orderStatus}</p>
             <ul>${items || '<li>Produit unique</li>'}</ul>
@@ -717,6 +735,18 @@ function bindAdminPanel() {
     });
 }
 
+function setupTrackingMenuLink() {
+  document.querySelectorAll('.menu-panel').forEach((panel) => {
+    if (panel.querySelector('[data-role="tracking-nav"]')) return;
+
+    const trackingLink = document.createElement('a');
+    trackingLink.href = 'suivi.html';
+    trackingLink.dataset.role = 'tracking-nav';
+    trackingLink.textContent = 'Suivi commande';
+    panel.appendChild(trackingLink);
+  });
+}
+
 function setupAdminMenuLink() {
   const currentUser = getCurrentUser();
   if (!currentUser || currentUser.role !== 'admin') return;
@@ -729,6 +759,87 @@ function setupAdminMenuLink() {
     adminLink.dataset.role = 'admin-nav';
     adminLink.textContent = 'Gestion boutique';
     panel.appendChild(adminLink);
+  });
+}
+
+function bindTrackingPage() {
+  const trackingForm = document.getElementById('tracking-order-form');
+  const trackingResult = document.getElementById('tracking-order-result');
+  const trackingInput = document.getElementById('tracking-order-id');
+
+  if (!trackingForm || !trackingResult) return;
+
+  const loadOrder = async (orderId) => {
+    if (!orderId) {
+      trackingResult.innerHTML = '<p>Veuillez saisir un numéro de commande.</p>';
+      return;
+    }
+
+    try {
+      const orders = await fetchJson('/api/orders');
+      const order = orders.find((item) => String(item.id) === String(orderId));
+      if (!order) {
+        trackingResult.innerHTML = '<p>Commande introuvable. Vérifiez le numéro.</p>';
+        return;
+      }
+
+      const currentStatus = getStatusLabel(order.status || 'preparation');
+      const courier = getDeliveryInfo(order);
+      const orderItems = (order.items || []).map((item) => `
+        <li>${item.product_name || 'Produit'} × ${item.quantity} — ${formatPrice(Number(item.price || 0) * Number(item.quantity || 0))}</li>
+      `).join('');
+
+      const statusSteps = ['preparation', 'en_route', 'livree'];
+      const currentIndex = statusSteps.includes(order.status || 'preparation') ? statusSteps.indexOf(order.status) : 0;
+
+      trackingResult.innerHTML = `
+        <div class="tracking-panel">
+          <div class="tracking-header">
+            <div>
+              <span class="eyebrow">Commande</span>
+              <h3>#${order.id}</h3>
+            </div>
+            <span class="invoice-badge">${order.invoice_number || 'Facture en cours'}</span>
+          </div>
+
+          <div class="tracking-meta">
+            <p><strong>Client :</strong> ${order.customer_name || 'Client'}</p>
+            <p><strong>Téléphone :</strong> ${order.customer_phone || 'Non renseigné'}</p>
+            <p><strong>Ville :</strong> ${order.city || 'Non précisée'}</p>
+            <p><strong>Statut :</strong> ${currentStatus}</p>
+            <p><strong>Livreur :</strong> ${courier.name} • <a href="${buildCourierLink(courier.phone)}">${courier.phone}</a></p>
+          </div>
+
+          <div class="tracking-steps compact">
+            ${statusSteps.map((step, index) => `
+              <div class="tracking-step ${index <= currentIndex ? 'is-active' : ''}">
+                <span>${index + 1}</span>
+                <small>${step === 'preparation' ? 'Préparation' : step === 'en_route' ? 'En route' : 'Livrée'}</small>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="invoice-box compact-box">
+            <h4>Contenu de la commande</h4>
+            <ul>${orderItems || '<li>Produit unique</li>'}</ul>
+            <p><strong>Total :</strong> ${formatPrice(Number(order.total || 0))}</p>
+          </div>
+        </div>
+      `;
+    } catch (error) {
+      trackingResult.innerHTML = `<p>${error.message}</p>`;
+    }
+  };
+
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('id')) {
+    trackingInput.value = params.get('id');
+    loadOrder(params.get('id'));
+  }
+
+  trackingForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    loadOrder(trackingInput.value.trim());
   });
 }
 
@@ -769,6 +880,8 @@ document.addEventListener('DOMContentLoaded', () => {
   bindExpandableContent();
   bindAuthForms();
   bindAdminPanel();
+  bindTrackingPage();
+  setupTrackingMenuLink();
   setupAdminMenuLink();
   setupBurgerMenu();
   setupObserver();

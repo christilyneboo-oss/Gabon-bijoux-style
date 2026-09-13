@@ -105,6 +105,7 @@ async function initDatabase() {
   await ensureColumn('orders', 'created_at', 'created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP');
   await ensureColumn('orders', 'invoice_number', 'invoice_number TEXT');
   await ensureColumn('orders', 'delivery_name', 'delivery_name TEXT');
+  await ensureColumn('orders', 'delivery_phone', 'delivery_phone TEXT');
   await ensureColumn('orders', 'delivery_rating', 'delivery_rating INTEGER');
   await ensureColumn('orders', 'shop_rating', 'shop_rating INTEGER');
   await ensureColumn('orders', 'delivery_review', 'delivery_review TEXT');
@@ -162,7 +163,7 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.static(rootDir));
 
 async function createOrderFromPayload(payload) {
-  const { userId, items, name, telephone, city, message } = payload || {};
+  const { userId, items, name, telephone, city, message, deliveryName, deliveryPhone } = payload || {};
   if (!Array.isArray(items) || items.length === 0) {
     throw new Error('Commande invalide.');
   }
@@ -174,7 +175,9 @@ async function createOrderFromPayload(payload) {
   );
 
   const invoiceNumber = `GBS-${new Date().getFullYear()}-${String(orderResult.id).padStart(5, '0')}`;
-  await run('UPDATE orders SET invoice_number = ?, delivery_name = ? WHERE id = ?', [invoiceNumber, 'Livreur GBS', Number(orderResult.id)]);
+  const courierName = deliveryName ? String(deliveryName).trim() : 'Livreur GBS';
+  const courierPhone = deliveryPhone ? String(deliveryPhone).trim() : '+241 06 00 00 00';
+  await run('UPDATE orders SET invoice_number = ?, delivery_name = ?, delivery_phone = ? WHERE id = ?', [invoiceNumber, courierName, courierPhone, Number(orderResult.id)]);
 
   for (const item of items) {
     await run('INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)', [

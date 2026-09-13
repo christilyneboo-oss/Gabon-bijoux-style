@@ -115,6 +115,8 @@ if (form) {
           telephone,
           city: ville,
           message,
+          deliveryName: 'Livreur GBS',
+          deliveryPhone: '+241 06 00 00 00',
           items: [{
             productId,
             quantity: quantite,

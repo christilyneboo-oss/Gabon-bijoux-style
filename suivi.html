@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Suivi commande — Gabon Bijoux Style</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="minimal-nav">
+  <div class="menu-wrap">
+    <button type="button" class="menu-btn" aria-label="Menu">☰</button>
+    <div class="menu-panel" id="menu-panel">
+      <a href="index.html">Accueil</a>
+      <a href="boutique.html">Boutique</a>
+      <a href="apropos.html">À propos</a>
+      <a href="contact.html">Contact</a>
+      <a href="compte.html">Compte</a>
+      <a href="suivi.html">Suivi commande</a>
+      <a href="commander.html">Commander</a>
+    </div>
+  </div>
+  <div class="brand-lockup">
+    <div class="brand-name brand-name-short">GBS</div>
+  </div>
+  <div class="nav-action-icons">
+    <button type="button" class="icon-btn icon-search" aria-label="Rechercher">⌕</button>
+    <a href="boutique.html" class="icon-btn icon-cart" aria-label="Panier">🛍</a>
+  </div>
+</nav>
+
+<section class="page-header">
+  <div class="eyebrow">Suivi</div>
+  <h1>Suivi de commande</h1>
+</section>
+
+<section class="contact-shell">
+  <div class="contact-section">
+    <div class="contact-topline">Votre commande en temps réel</div>
+
+    <form id="tracking-order-form" class="auth-form" style="max-width: 520px; margin: 1.5rem 0 2rem;">
+      <input id="tracking-order-id" type="number" min="1" placeholder="Entrez le numéro de commande" required>
+      <button type="submit" class="btn btn-primary">Voir le suivi</button>
+    </form>
+
+    <div id="tracking-order-result" class="tracking-result-panel"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-bottom">
+    <span>© 2026 Gabon Bijoux Style</span>
+    <span>Suivi • Livraison • Commande</span>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
