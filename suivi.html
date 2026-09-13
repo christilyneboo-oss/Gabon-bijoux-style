@@ -39,7 +39,15 @@
   <div class="contact-section">
     <div class="contact-topline">Votre commande en temps réel</div>
 
-    <form id="tracking-order-form" class="auth-form" style="max-width: 520px; margin: 1.5rem 0 2rem;">
+    <div class="delivery-scene" aria-hidden="true">
+      <img
+        class="delivery-reference-image"
+        src="images/livreur-delivery-transparent.png"
+        alt="Livreur de livraison"
+      >
+    </div>
+
+    <form id="tracking-order-form" class="auth-form" style="max-width: 520px; margin: 1.5rem auto 2rem;">
       <input id="tracking-order-id" type="number" min="1" placeholder="Entrez le numéro de commande" required>
       <button type="submit" class="btn btn-primary">Voir le suivi</button>
     </form>

@@ -1,11 +1,33 @@
 const STORAGE_KEYS = {
-  currentUser: 'gabon_bijoux_current_user'
+  currentUser: 'gabon_bijoux_current_user',
+  deliveryConfig: 'gabon_bijoux_delivery_config'
 };
 
 const DEFAULT_DELIVERY = {
-  name: 'Livreur GBS',
-  phone: '+241 06 00 00 00'
+  name: 'Igor',
+  phone: '+241 02-40-91-88'
 };
+
+function getCourierConfig() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.deliveryConfig) || 'null');
+    return {
+      name: saved?.name || DEFAULT_DELIVERY.name,
+      phone: saved?.phone || DEFAULT_DELIVERY.phone
+    };
+  } catch (error) {
+    return { ...DEFAULT_DELIVERY };
+  }
+}
+
+function saveCourierConfig(config) {
+  const nextConfig = {
+    name: String(config?.name || DEFAULT_DELIVERY.name).trim() || DEFAULT_DELIVERY.name,
+    phone: String(config?.phone || DEFAULT_DELIVERY.phone).trim() || DEFAULT_DELIVERY.phone
+  };
+  localStorage.setItem(STORAGE_KEYS.deliveryConfig, JSON.stringify(nextConfig));
+  return nextConfig;
+}
 
 let currentCatalogFilter = 'Tous';
 let currentCatalogSearch = '';
@@ -44,8 +66,9 @@ function formatDateTime(value) {
 }
 
 function getDeliveryInfo(order) {
-  const name = order?.delivery_name || DEFAULT_DELIVERY.name;
-  const phone = order?.delivery_phone || DEFAULT_DELIVERY.phone;
+  const courier = getCourierConfig();
+  const name = order?.delivery_name || courier.name;
+  const phone = order?.delivery_phone || courier.phone;
   return { name, phone };
 }
 
@@ -525,6 +548,7 @@ function bindAdminPanel() {
   const newProductBtn = document.getElementById('admin-new-product-btn');
   const productList = document.getElementById('admin-product-list');
   const orderList = document.getElementById('admin-order-list');
+  const deliveryForm = document.getElementById('admin-delivery-form');
   const imageInputFile = document.getElementById('product-image-file');
   const imageInputHidden = document.getElementById('product-image');
   const imagePreview = document.getElementById('product-image-preview');
@@ -559,6 +583,32 @@ function bindAdminPanel() {
   }
 
   if (adminMessage) adminMessage.textContent = `Bienvenue, ${currentUser.name} !`;
+
+  if (deliveryForm) {
+    const deliveryNameInput = document.getElementById('delivery-name');
+    const deliveryPhoneInput = document.getElementById('delivery-phone');
+    const currentCourier = getCourierConfig();
+    if (deliveryNameInput) deliveryNameInput.value = currentCourier.name;
+    if (deliveryPhoneInput) deliveryPhoneInput.value = currentCourier.phone;
+
+    deliveryForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const nextCourier = saveCourierConfig({
+        name: document.getElementById('delivery-name')?.value || DEFAULT_DELIVERY.name,
+        phone: document.getElementById('delivery-phone')?.value || DEFAULT_DELIVERY.phone
+      });
+      if (deliveryNameInput) deliveryNameInput.value = nextCourier.name;
+      if (deliveryPhoneInput) deliveryPhoneInput.value = nextCourier.phone;
+      alert(`Livreur enregistré : ${nextCourier.name} • ${nextCourier.phone}`);
+
+      try {
+        const orders = await fetchJson('/api/orders');
+        renderOrderList(orders);
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+  }
 
   function renderAdminList(products) {
     if (!productList) return;

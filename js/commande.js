@@ -106,6 +106,7 @@ if (form) {
     }
 
     try {
+      const courier = getCourierConfig();
       const response = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -115,8 +116,8 @@ if (form) {
           telephone,
           city: ville,
           message,
-          deliveryName: 'Livreur GBS',
-          deliveryPhone: '+241 06 00 00 00',
+          deliveryName: courier.name,
+          deliveryPhone: courier.phone,
           items: [{
             productId,
             quantity: quantite,

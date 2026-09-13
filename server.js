@@ -138,25 +138,6 @@ async function initDatabase() {
     }
   }
 
-  const productCount = await get('SELECT COUNT(*) AS count FROM products');
-  if (!productCount || Number(productCount.count) === 0) {
-    const defaultProducts = [
-      { name: 'Ensemble Étoile', category: 'Ensembles', price: 32000, stock: 5, description: 'Set chic pour soirées et événements.', image: 'images/placeholder.svg' },
-      { name: 'Bracelet Luna', category: 'Bracelets', price: 12000, stock: 10, description: 'Bracelet fin, léger et élégant.', image: 'images/placeholder.svg' },
-      { name: 'Boucle Dorée', category: 'Boucles', price: 14000, stock: 8, description: 'Boucle classique pour un look moderne.', image: 'images/placeholder.svg' },
-      { name: 'Bague Aster', category: 'Bagues', price: 16000, stock: 7, description: 'Bague raffinée avec finesse et présence.', image: 'images/placeholder.svg' },
-      { name: 'Collier Solène', category: 'Colliers', price: 21000, stock: 6, description: 'Collier chic pour les looks premium.', image: 'images/placeholder.svg' },
-      { name: 'Chevillière Éclat', category: 'Chevillères', price: 18000, stock: 9, description: 'Chevillière élégante pour une touche subtile.', image: 'images/placeholder.svg' }
-    ];
-
-    for (const product of defaultProducts) {
-      await run(
-        'INSERT INTO products (name, category, price, stock, description, image) VALUES (?, ?, ?, ?, ?, ?)',
-        [product.name, product.category, product.price, product.stock, product.description, product.image]
-      );
-    }
-  }
-
 }
 
 app.use(express.json({ limit: '1mb' }));
@@ -175,8 +156,8 @@ async function createOrderFromPayload(payload) {
   );
 
   const invoiceNumber = `GBS-${new Date().getFullYear()}-${String(orderResult.id).padStart(5, '0')}`;
-  const courierName = deliveryName ? String(deliveryName).trim() : 'Livreur GBS';
-  const courierPhone = deliveryPhone ? String(deliveryPhone).trim() : '+241 06 00 00 00';
+  const courierName = deliveryName ? String(deliveryName).trim() : 'Igor';
+  const courierPhone = deliveryPhone ? String(deliveryPhone).trim() : '+241 02-40-91-88';
   await run('UPDATE orders SET invoice_number = ?, delivery_name = ?, delivery_phone = ? WHERE id = ?', [invoiceNumber, courierName, courierPhone, Number(orderResult.id)]);
 
   for (const item of items) {
