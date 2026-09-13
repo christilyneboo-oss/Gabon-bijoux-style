@@ -142,6 +142,24 @@ function bindCatalogSearch() {
   }
 }
 
+function bindExpandableContent() {
+  document.querySelectorAll('[data-toggle-target]').forEach((button) => {
+    const targetId = button.dataset.toggleTarget;
+    const target = document.getElementById(targetId);
+    if (!target) return;
+
+    const openLabel = button.dataset.openLabel || button.textContent || 'En savoir plus';
+    const closeLabel = button.dataset.closeLabel || 'Fermer';
+
+    button.addEventListener('click', () => {
+      const isOpen = target.classList.toggle('is-open');
+      button.setAttribute('aria-expanded', String(isOpen));
+      target.setAttribute('aria-hidden', String(!isOpen));
+      button.textContent = isOpen ? closeLabel : openLabel;
+    });
+  });
+}
+
 function renderProductCards() {
   const grid = document.querySelector('.grid, .shop-grid');
   const catalogSections = document.getElementById('catalog-sections');
@@ -731,6 +749,7 @@ function setupObserver() {
 document.addEventListener('DOMContentLoaded', () => {
   renderProductCards();
   bindCatalogSearch();
+  bindExpandableContent();
   bindAuthForms();
   bindAdminPanel();
   setupAdminMenuLink();

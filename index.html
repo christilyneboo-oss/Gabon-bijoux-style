@@ -17,7 +17,6 @@
       <a href="apropos.html">À propos</a>
       <a href="contact.html">Contact</a>
       <a href="compte.html">Compte</a>
-      <a href="https://instagram.com/gabon_bijoux_style" target="_blank" rel="noopener">Instagram</a>
       <a href="commander.html">Commander</a>
     </div>
   </div>
@@ -79,7 +78,7 @@
     <div class="fidelity-copy">
       <h2>Obtenez votre carte de fidélité Gabon Bijoux Style</h2>
       <p>Disponible dans toute notre boutique. Cumulez des points à chaque achat et profitez d’avantages exclusifs, d’offres spéciales et d’une attention particulière pour chaque client.</p>
-      <button type="button" class="fidelity-btn">En savoir plus</button>
+      <button type="button" class="fidelity-btn" data-toggle-target="loyalty-details" data-open-label="En savoir plus" data-close-label="Fermer" aria-expanded="false">En savoir plus</button>
     </div>
 
     <div class="fidelity-card-scene" aria-label="Carte de fidélité">
@@ -102,10 +101,12 @@
 <section class="loyalty-story reveal">
   <div class="loyalty-wrap">
     <h2>Le programme de fidélité Gabon Bijoux Style</h2>
-    <p>Bienvenue dans le programme de fidélité GBS.</p>
-    <p>À chaque achat, profitez d’avantages exclusifs, de surprises, d’offres spéciales et d’un accès privilégié à certaines nouveautés.</p>
-    <p>Parce que votre confiance et votre fidélité comptent énormément pour nous, nous avons créé ce programme pour vous remercier et vous faire vivre encore plus l’expérience Gabon Bijoux Style.</p>
-    <button type="button" class="loyalty-btn">Découvrir les avantages</button>
+    <div class="loyalty-details" id="loyalty-details" aria-hidden="true">
+      <p>Bienvenue dans le programme de fidélité GBS.</p>
+      <p>À chaque achat, profitez d’avantages exclusifs, de surprises, d’offres spéciales et d’un accès privilégié à certaines nouveautés.</p>
+      <p>Parce que votre confiance et votre fidélité comptent énormément pour nous, nous avons créé ce programme pour vous remercier et vous faire vivre encore plus l’expérience Gabon Bijoux Style.</p>
+    </div>
+    <button type="button" class="loyalty-btn" data-toggle-target="loyalty-details" data-open-label="Découvrir les avantages" data-close-label="Fermer" aria-expanded="false">Découvrir les avantages</button>
   </div>
 </section>
 
@@ -115,7 +116,6 @@
       <div class="eyebrow">Sélection</div>
       <h2>Nos pièces phares</h2>
     </div>
-    <p>Un aperçu de la boutique — retrouve toute la collection complète sur la page Boutique.</p>
   </div>
   <div class="grid">
     <div class="card reveal">
