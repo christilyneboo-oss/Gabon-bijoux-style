@@ -54,12 +54,32 @@ function getCurrentUser() {
 
 window.addEventListener('DOMContentLoaded', () => {
   loadProductsIntoSelect();
+
+  const currentUser = getCurrentUser();
+  const form = document.getElementById('order-form');
+  const nom = document.getElementById('nom');
+
+  if (currentUser && nom && currentUser.name) {
+    nom.value = currentUser.name;
+  }
+
+  if (form && !currentUser) {
+    alert('Vous devez créer un compte et vous connecter pour passer une commande.');
+    window.location.href = 'compte.html';
+  }
 });
 
 const form = document.getElementById('order-form');
 if (form) {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
+
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      alert('Vous devez créer un compte et vous connecter pour passer une commande.');
+      window.location.href = 'compte.html';
+      return;
+    }
 
     const nom = document.getElementById('nom').value.trim();
     const telephone = document.getElementById('telephone').value.trim();
