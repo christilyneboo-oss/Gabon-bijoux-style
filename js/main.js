@@ -2,6 +2,9 @@ const STORAGE_KEYS = {
   currentUser: 'gabon_bijoux_current_user'
 };
 
+let currentCatalogFilter = 'Tous';
+let currentCatalogSearch = '';
+
 function getCurrentUser() {
   try {
     return JSON.parse(localStorage.getItem(STORAGE_KEYS.currentUser) || 'null');
@@ -36,12 +39,188 @@ async function fetchJson(url, options = {}) {
   return data;
 }
 
+const SHOP_CATEGORY_ORDER = ['Ensembles', 'Bracelets', 'Boucles', 'Bagues', 'Colliers', 'Chevillères'];
+
+function normalizeCategory(category) {
+  const raw = String(category || '').trim();
+  if (!raw) return 'Autres';
+
+  const aliases = {
+    ensemble: 'Ensembles',
+    ensembles: 'Ensembles',
+    bracelet: 'Bracelets',
+    bracelets: 'Bracelets',
+    boucle: 'Boucles',
+    boucles: 'Boucles',
+    bague: 'Bagues',
+    bagues: 'Bagues',
+    collier: 'Colliers',
+    colliers: 'Colliers',
+    chevillere: 'Chevillères',
+    chevilleres: 'Chevillères',
+    'chevillères': 'Chevillères'
+  };
+
+  const normalized = raw.toLowerCase();
+  if (aliases[normalized]) return aliases[normalized];
+
+  const titleCase = raw
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+
+  return titleCase;
+}
+
+function applyCatalogFilters() {
+  const catalogSections = document.querySelectorAll('.catalog-section');
+  const query = currentCatalogSearch.trim().toLowerCase();
+  let visibleSectionCount = 0;
+
+  catalogSections.forEach((section) => {
+    const sectionTitle = (section.dataset.categorySection || '').toLowerCase();
+    const cards = [...section.querySelectorAll('.card')];
+    let visibleCards = 0;
+
+    cards.forEach((card) => {
+      const text = (card.textContent || '').toLowerCase();
+      const categoryMatch = currentCatalogFilter === 'Tous' || sectionTitle === currentCatalogFilter.toLowerCase();
+      const searchMatch = !query || text.includes(query);
+      const shouldShow = categoryMatch && searchMatch;
+      card.style.display = shouldShow ? '' : 'none';
+      if (shouldShow) visibleCards += 1;
+    });
+
+    const isVisible = visibleCards > 0;
+    section.style.display = isVisible ? '' : 'none';
+    if (isVisible) visibleSectionCount += 1;
+  });
+
+  const emptyState = document.getElementById('catalog-empty-state');
+  if (emptyState) {
+    emptyState.remove();
+  }
+
+  if (!visibleSectionCount && query) {
+    const container = document.getElementById('catalog-sections');
+    if (container) {
+      const notice = document.createElement('div');
+      notice.id = 'catalog-empty-state';
+      notice.className = 'search-empty-state';
+      notice.textContent = 'Aucun produit trouvé pour votre recherche.';
+      container.appendChild(notice);
+    }
+  }
+
+  const filterButtons = document.querySelectorAll('[data-category-filter]');
+  filterButtons.forEach((button) => {
+    button.classList.toggle('is-active', button.dataset.categoryFilter === currentCatalogFilter);
+  });
+}
+
+function bindCatalogSearch() {
+  const searchInput = document.getElementById('catalog-search');
+  const searchButton = document.querySelector('.icon-search');
+
+  if (searchInput) {
+    searchInput.addEventListener('input', (event) => {
+      currentCatalogSearch = event.target.value || '';
+      applyCatalogFilters();
+    });
+  }
+
+  if (searchButton) {
+    searchButton.addEventListener('click', () => {
+      const target = document.getElementById('catalog-search');
+      if (target) {
+        target.focus();
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  }
+}
+
 function renderProductCards() {
   const grid = document.querySelector('.grid, .shop-grid');
-  if (!grid) return;
+  const catalogSections = document.getElementById('catalog-sections');
 
   fetchJson('/api/products')
     .then((products) => {
+      if (catalogSections) {
+        const grouped = {};
+        SHOP_CATEGORY_ORDER.forEach((category) => {
+          grouped[category] = [];
+        });
+
+        products.forEach((product) => {
+          const category = normalizeCategory(product.category);
+          if (!grouped[category]) grouped[category] = [];
+          grouped[category].push(product);
+        });
+
+        const sectionOrder = [...SHOP_CATEGORY_ORDER, ...Object.keys(grouped).filter((category) => !SHOP_CATEGORY_ORDER.includes(category)).sort()];
+        catalogSections.innerHTML = sectionOrder.map((category) => {
+          const items = grouped[category] || [];
+          if (!items.length) return '';
+
+          return `
+            <section class="catalog-section" data-category-section="${category}">
+              <div class="catalog-section-header">
+                <div>
+                  <span class="eyebrow">Collection</span>
+                  <h3>${category}</h3>
+                </div>
+                <span class="catalog-count">${items.length} pièce${items.length > 1 ? 's' : ''}</span>
+              </div>
+              <div class="shop-grid">
+                ${items.map((product) => `
+                  <article class="card reveal">
+                    <div class="card-media">
+                      <img src="${product.image || 'images/placeholder.svg'}" alt="${product.name}" onerror="this.src='images/placeholder.svg'">
+                    </div>
+                    <div class="card-body">
+                      <div class="card-code">RÉF. ${String(product.id).toUpperCase()} — ${String(product.category).toUpperCase()}</div>
+                      <div class="card-name">${product.name}</div>
+                      <div class="card-price">${formatPrice(product.price)}</div>
+                      <p class="card-description">${product.description || 'Bijou premium pour tous les jours.'}</p>
+                      <a href="commander.html?produit=${encodeURIComponent(product.name)}&prix=${product.price}" class="card-cta">Commander →</a>
+                    </div>
+                  </article>
+                `).join('')}
+              </div>
+            </section>
+          `;
+        }).join('');
+
+        const filterButtons = document.querySelectorAll('[data-category-filter]');
+        filterButtons.forEach((button) => {
+          button.addEventListener('click', () => {
+            currentCatalogFilter = button.dataset.categoryFilter;
+            applyCatalogFilters();
+          });
+        });
+
+        applyCatalogFilters();
+
+        if (window.IntersectionObserver) {
+          const io = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) entry.target.classList.add('in-view');
+            });
+          }, { threshold: 0.2 });
+
+          document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+        } else {
+          document.querySelectorAll('.reveal').forEach((el) => el.classList.add('in-view'));
+        }
+
+        return;
+      }
+
+      if (!grid) return;
+
       grid.innerHTML = products.map((product) => `
         <article class="card reveal">
           <div class="card-media">
@@ -70,8 +249,128 @@ function renderProductCards() {
       }
     })
     .catch((error) => {
-      grid.innerHTML = `<p class="card-description">${error.message}</p>`;
+      if (catalogSections) {
+        catalogSections.innerHTML = `<p class="card-description">${error.message}</p>`;
+        return;
+      }
+      if (grid) {
+        grid.innerHTML = `<p class="card-description">${error.message}</p>`;
+      }
     });
+}
+
+function getStatusLabel(status) {
+  const labels = {
+    preparation: 'Préparation de la commande',
+    en_route: 'Livreur en route',
+    livree: 'Livrée',
+    pending: 'En attente',
+    confirmed: 'Confirmée',
+    shipped: 'Expédiée',
+    delivered: 'Livrée'
+  };
+  return labels[status] || 'En cours';
+}
+
+function renderUserOrders(orders) {
+  const container = document.getElementById('user-orders-list');
+  if (!container) return;
+
+  if (!orders.length) {
+    container.innerHTML = '<p>Aucune commande pour le moment.</p>';
+    return;
+  }
+
+  const statusOrder = ['preparation', 'en_route', 'livree'];
+
+  container.innerHTML = orders.map((order) => {
+    const status = order.status || 'preparation';
+    const currentIndex = statusOrder.includes(status) ? statusOrder.indexOf(status) : 0;
+    const items = (order.items || []).map((item) => `
+      <li>${item.product_name || 'Produit'} × ${item.quantity} — ${formatPrice(Number(item.price || 0) * Number(item.quantity || 0))}</li>
+    `).join('');
+
+    return `
+      <div class="admin-item order-tracking-card">
+        <div class="order-tracking-content">
+          <div class="order-topline">
+            <strong>Commande #${order.id}</strong>
+            <span class="invoice-badge">${order.invoice_number || 'Facture en cours'}</span>
+          </div>
+          <p>${getStatusLabel(status)}</p>
+          <div class="tracking-steps">
+            ${statusOrder.map((step, index) => `
+              <div class="tracking-step ${index <= currentIndex ? 'is-active' : ''}">
+                <span>${index + 1}</span>
+                <small>${step === 'preparation' ? 'Préparation' : step === 'en_route' ? 'En route' : 'Livrée'}</small>
+              </div>
+            `).join('')}
+          </div>
+          <div class="invoice-box">
+            <h4>Facture</h4>
+            <ul>${items || '<li>Produit unique</li>'}</ul>
+            <p><strong>Total :</strong> ${formatPrice(Number(order.total || 0))}</p>
+            <p><strong>Livraison :</strong> ${order.city || 'Ville non précisée'}</p>
+          </div>
+
+          <div class="rating-box">
+            <div class="rating-row">
+              <label>Note livreur</label>
+              <select data-rating-delivery="${order.id}">
+                <option value="">—</option>
+                <option value="1" ${Number(order.delivery_rating || 0) === 1 ? 'selected' : ''}>1/5</option>
+                <option value="2" ${Number(order.delivery_rating || 0) === 2 ? 'selected' : ''}>2/5</option>
+                <option value="3" ${Number(order.delivery_rating || 0) === 3 ? 'selected' : ''}>3/5</option>
+                <option value="4" ${Number(order.delivery_rating || 0) === 4 ? 'selected' : ''}>4/5</option>
+                <option value="5" ${Number(order.delivery_rating || 0) === 5 ? 'selected' : ''}>5/5</option>
+              </select>
+            </div>
+            <div class="rating-row">
+              <label>Note boutique</label>
+              <select data-rating-shop="${order.id}">
+                <option value="">—</option>
+                <option value="1" ${Number(order.shop_rating || 0) === 1 ? 'selected' : ''}>1/5</option>
+                <option value="2" ${Number(order.shop_rating || 0) === 2 ? 'selected' : ''}>2/5</option>
+                <option value="3" ${Number(order.shop_rating || 0) === 3 ? 'selected' : ''}>3/5</option>
+                <option value="4" ${Number(order.shop_rating || 0) === 4 ? 'selected' : ''}>4/5</option>
+                <option value="5" ${Number(order.shop_rating || 0) === 5 ? 'selected' : ''}>5/5</option>
+              </select>
+            </div>
+            <textarea data-review-delivery="${order.id}" rows="2" placeholder="Commentaire livreur">${order.delivery_review || ''}</textarea>
+            <textarea data-review-shop="${order.id}" rows="2" placeholder="Commentaire boutique">${order.shop_review || ''}</textarea>
+            <button type="button" class="btn btn-small btn-primary" data-order-rate="${order.id}">Enregistrer avis</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  container.querySelectorAll('[data-order-rate]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const orderId = button.dataset.orderRate;
+      const payload = {
+        delivery_rating: document.querySelector(`[data-rating-delivery="${orderId}"]`)?.value || null,
+        shop_rating: document.querySelector(`[data-rating-shop="${orderId}"]`)?.value || null,
+        delivery_review: document.querySelector(`[data-review-delivery="${orderId}"]`)?.value || '',
+        shop_review: document.querySelector(`[data-review-shop="${orderId}"]`)?.value || ''
+      };
+
+      try {
+        await fetchJson(`/api/orders/${orderId}/rating`, {
+          method: 'PATCH',
+          body: JSON.stringify(payload)
+        });
+        const currentUser = getCurrentUser();
+        if (currentUser) {
+          const orders = await fetchJson(`/api/orders/user/${currentUser.id}`);
+          renderUserOrders(orders);
+        }
+        alert('Votre avis a bien été enregistré.');
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+  });
 }
 
 function bindAuthForms() {
@@ -153,6 +452,15 @@ function bindAuthForms() {
       alert('Déconnexion réussie.');
       window.location.reload();
     });
+  }
+
+  const currentUser = getCurrentUser();
+  if (currentUser && document.getElementById('user-orders-list')) {
+    fetchJson(`/api/orders/user/${currentUser.id}`)
+      .then(renderUserOrders)
+      .catch((error) => {
+        document.getElementById('user-orders-list').innerHTML = `<p>${error.message}</p>`;
+      });
   }
 }
 
@@ -259,6 +567,9 @@ function bindAdminPanel() {
     }
 
     const statusLabels = {
+      preparation: 'Préparation de la commande',
+      en_route: 'Livreur en route',
+      livree: 'Livrée',
       pending: 'En attente',
       confirmed: 'Confirmée',
       shipped: 'Expédiée',
@@ -270,8 +581,9 @@ function bindAdminPanel() {
         <li>${item.product_name || 'Produit'} × ${item.quantity} — ${formatPrice(item.price * item.quantity)}</li>
       `).join('');
 
-      const nextStatus = order.status === 'pending' ? 'confirmed' : order.status === 'confirmed' ? 'shipped' : order.status === 'shipped' ? 'delivered' : 'pending';
-      const nextLabel = order.status === 'pending' ? 'Valider' : order.status === 'confirmed' ? 'Expédier' : order.status === 'shipped' ? 'Livrer' : 'Rouvrir';
+      const orderStatus = order.status || 'preparation';
+      const nextStatus = orderStatus === 'preparation' ? 'en_route' : orderStatus === 'en_route' ? 'livree' : orderStatus === 'pending' ? 'confirmed' : orderStatus === 'confirmed' ? 'shipped' : orderStatus === 'shipped' ? 'delivered' : 'preparation';
+      const nextLabel = orderStatus === 'preparation' ? 'Mettre en route' : orderStatus === 'en_route' ? 'Marquer livrée' : orderStatus === 'pending' ? 'Valider' : orderStatus === 'confirmed' ? 'Expédier' : orderStatus === 'shipped' ? 'Livrer' : 'Terminer';
 
       return `
         <div class="admin-item">
@@ -279,7 +591,8 @@ function bindAdminPanel() {
             <strong>Commande #${order.id}</strong>
             <p>${order.customer_name || 'Client'} • ${order.customer_phone || 'Sans téléphone'}</p>
             <p>${order.city || 'Ville non précisée'} • ${formatPrice(order.total)}</p>
-            <p>Statut : ${statusLabels[order.status] || order.status}</p>
+            <p>Facture : ${order.invoice_number || 'À générer'}</p>
+            <p>Statut : ${statusLabels[orderStatus] || orderStatus}</p>
             <ul>${items || '<li>Produit unique</li>'}</ul>
           </div>
           <div class="admin-actions">
@@ -417,6 +730,7 @@ function setupObserver() {
 
 document.addEventListener('DOMContentLoaded', () => {
   renderProductCards();
+  bindCatalogSearch();
   bindAuthForms();
   bindAdminPanel();
   setupAdminMenuLink();

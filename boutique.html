@@ -35,16 +35,33 @@
   <h1>La boutique</h1>
 </section>
 
-<section>
-  <div class="grid">
-    <div class="card reveal">
-      <div class="card-body">
-        <div class="card-name">La boutique est en cours de mise à jour.</div>
-        <p class="card-description">Les nouvelles pièces seront ajoutées après validation. Pour commander, écrivez-nous directement sur WhatsApp.</p>
-        <a href="https://wa.me/24107049872?text=Bonjour%20Gabon%20Bijoux%20Style%2C%20je%20souhaite%20une%20commande." class="card-cta" target="_blank">Commander via WhatsApp →</a>
-      </div>
-    </div>
+<section class="catalog-shell search-shell">
+  <div class="search-panel" aria-label="Recherche rapide">
+    <span class="search-icon">⌕</span>
+    <input id="catalog-search" type="search" placeholder="Rechercher un bijou, un ensemble ou une catégorie..." aria-label="Rechercher un bijou">
   </div>
+</section>
+
+<section class="catalog-shell">
+  <div class="catalog-header-block">
+    <div>
+      <div class="eyebrow">Nos collections</div>
+      <h2>Une sélection pensée pour chaque style</h2>
+    </div>
+    <p>Des pièces raffinées pour sublimer les looks du quotidien, avec des ensembles assortis, des bracelets, des boucles, bagues, colliers et chevillères.</p>
+  </div>
+
+  <div class="catalog-filters" aria-label="Filtres de catégories">
+    <button type="button" class="catalog-filter-btn is-active" data-category-filter="Tous">Tous</button>
+    <button type="button" class="catalog-filter-btn" data-category-filter="Ensembles">Ensembles</button>
+    <button type="button" class="catalog-filter-btn" data-category-filter="Bracelets">Bracelets</button>
+    <button type="button" class="catalog-filter-btn" data-category-filter="Boucles">Boucles</button>
+    <button type="button" class="catalog-filter-btn" data-category-filter="Bagues">Bagues</button>
+    <button type="button" class="catalog-filter-btn" data-category-filter="Colliers">Colliers</button>
+    <button type="button" class="catalog-filter-btn" data-category-filter="Chevillères">Chevillères</button>
+  </div>
+
+  <div id="catalog-sections" class="catalog-sections"></div>
 </section>
 
 <footer>

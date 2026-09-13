@@ -35,44 +35,55 @@
   <h1>Finalise ta commande</h1>
 </section>
 
-<section>
+<section class="order-shell">
+  <div class="order-intro reveal">
+    <div class="eyebrow">Commande</div>
+    <h2>Commandez en quelques instants</h2>
+    <p>Choisissez votre bijou, remplissez vos informations et recevez votre commande avec assistance rapide.</p>
+  </div>
+
   <div class="order-wrap">
-    <form id="order-form">
-      <div class="form-group">
-        <label for="nom">Nom complet *</label>
-        <input type="text" id="nom" required placeholder="Ton nom">
-      </div>
-      <div class="form-group">
-        <label for="telephone">Téléphone *</label>
-        <input type="tel" id="telephone" required placeholder="Ex : 077 12 34 56">
-      </div>
-      <div class="form-group">
-        <label for="ville">Ville</label>
-        <input type="text" id="ville" placeholder="Ex : Libreville">
-      </div>
-      <div class="form-group">
-        <label for="produit">Produit souhaité *</label>
-        <select id="produit" required>
-          <option value="">— Aucun produit disponible pour le moment —</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="quantite">Quantité</label>
-        <input type="number" id="quantite" min="1" value="1">
-      </div>
-      <div class="form-group">
-        <label for="message">Message (optionnel)</label>
-        <textarea id="message" rows="3" placeholder="Une précision, une couleur, une gravure..."></textarea>
-      </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;">Envoyer la commande sur WhatsApp</button>
-    </form>
+    <div class="order-form-card reveal">
+      <form id="order-form">
+        <div class="form-group">
+          <label for="nom">Nom complet *</label>
+          <input type="text" id="nom" required placeholder="Ton nom">
+        </div>
+        <div class="form-group">
+          <label for="telephone">Téléphone *</label>
+          <input type="tel" id="telephone" required placeholder="Ex : 077 12 34 56">
+        </div>
+        <div class="form-group">
+          <label for="ville">Ville</label>
+          <input type="text" id="ville" placeholder="Ex : Libreville">
+        </div>
+        <div class="form-group">
+          <label for="produit">Produit souhaité *</label>
+          <select id="produit" required>
+            <option value="">— Aucun produit disponible pour le moment —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="quantite">Quantité</label>
+          <input type="number" id="quantite" min="1" value="1">
+        </div>
+        <div class="form-group">
+          <label for="message">Message (optionnel)</label>
+          <textarea id="message" rows="3" placeholder="Une précision, une couleur, une gravure..."></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary order-submit-btn">Envoyer la commande sur WhatsApp</button>
+      </form>
+    </div>
 
     <div class="order-summary reveal">
+      <div class="summary-badge">Étapes</div>
       <h3>Comment ça marche ?</h3>
-      <p>1. Remplis le formulaire avec tes informations.</p>
-      <p>2. Clique sur « Envoyer la commande sur WhatsApp ».</p>
-      <p>3. WhatsApp s'ouvre avec un message déjà écrit — il ne te reste qu'à l'envoyer.</p>
-      <p>4. On te répond directement pour confirmer et organiser la livraison.</p>
+      <ol class="summary-list">
+        <li>Remplis le formulaire avec tes informations.</li>
+        <li>Clique sur « Envoyer la commande sur WhatsApp ».</li>
+        <li>WhatsApp s'ouvre avec un message déjà rédigé.</li>
+        <li>On te confirme la commande et la livraison.</li>
+      </ol>
       <div class="wa-note">Réponse rapide — Lun-Ven 10h-17h30 · Sam 10h-16h</div>
     </div>
   </div>

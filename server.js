@@ -84,8 +84,14 @@ async function initDatabase() {
       city TEXT,
       message TEXT,
       total INTEGER NOT NULL,
-      status TEXT NOT NULL DEFAULT 'pending',
+      status TEXT NOT NULL DEFAULT 'preparation',
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      invoice_number TEXT,
+      delivery_name TEXT,
+      delivery_rating INTEGER,
+      shop_rating INTEGER,
+      delivery_review TEXT,
+      shop_review TEXT,
       FOREIGN KEY(user_id) REFERENCES users(id)
     )
   `);
@@ -95,8 +101,14 @@ async function initDatabase() {
   await ensureColumn('orders', 'city', 'city TEXT');
   await ensureColumn('orders', 'message', 'message TEXT');
   await ensureColumn('orders', 'total', 'total INTEGER NOT NULL DEFAULT 0');
-  await ensureColumn('orders', 'status', 'status TEXT NOT NULL DEFAULT "pending"');
+  await ensureColumn('orders', 'status', 'status TEXT NOT NULL DEFAULT "preparation"');
   await ensureColumn('orders', 'created_at', 'created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP');
+  await ensureColumn('orders', 'invoice_number', 'invoice_number TEXT');
+  await ensureColumn('orders', 'delivery_name', 'delivery_name TEXT');
+  await ensureColumn('orders', 'delivery_rating', 'delivery_rating INTEGER');
+  await ensureColumn('orders', 'shop_rating', 'shop_rating INTEGER');
+  await ensureColumn('orders', 'delivery_review', 'delivery_review TEXT');
+  await ensureColumn('orders', 'shop_review', 'shop_review TEXT');
 
   await run(`
     CREATE TABLE IF NOT EXISTS order_items (
@@ -125,30 +137,6 @@ async function initDatabase() {
     }
   }
 
-  const existingProducts = await all('SELECT * FROM products');
-  const legacyProductNames = [
-    'Collier Nyare',
-    'Bracelet Okoumé',
-    'Boucles Ogooué',
-    'Bague Lambaréné',
-    'Chaîne Mandji',
-    'Bracelet Duo'
-  ];
-
-  if (Array.isArray(existingProducts) && existingProducts.length > 0) {
-    const staleProductIds = existingProducts
-      .filter((product) => legacyProductNames.some((name) => product.name && product.name.toLowerCase() === name.toLowerCase()))
-      .map((product) => product.id);
-
-    if (staleProductIds.length > 0) {
-      await run(`DELETE FROM products WHERE id IN (${staleProductIds.map(() => '?').join(', ')})`, staleProductIds);
-    }
-  }
-
-}
-
-function LegacyProductNamesDefined(existingProducts, legacyProductNames) {
-  return !!(existingProducts && Number(existingProducts.total) > 0 && legacyProductNames.length);
 }
 
 app.use(express.json({ limit: '1mb' }));
@@ -163,8 +151,11 @@ async function createOrderFromPayload(payload) {
   const total = items.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 0), 0);
   const orderResult = await run(
     'INSERT INTO orders (user_id, customer_name, customer_phone, city, message, total, status) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    [userId ? Number(userId) : null, name ? String(name).trim() : '', telephone ? String(telephone).trim() : '', city ? String(city).trim() : '', message ? String(message).trim() : '', total, 'pending']
+    [userId ? Number(userId) : null, name ? String(name).trim() : '', telephone ? String(telephone).trim() : '', city ? String(city).trim() : '', message ? String(message).trim() : '', total, 'preparation']
   );
+
+  const invoiceNumber = `GBS-${new Date().getFullYear()}-${String(orderResult.id).padStart(5, '0')}`;
+  await run('UPDATE orders SET invoice_number = ?, delivery_name = ? WHERE id = ?', [invoiceNumber, 'Livreur GBS', Number(orderResult.id)]);
 
   for (const item of items) {
     await run('INSERT INTO order_items (order_id, product_id, quantity, price) VALUES (?, ?, ?, ?)', [
@@ -183,7 +174,8 @@ async function createOrderFromPayload(payload) {
     city: city ? String(city).trim() : '',
     message: message ? String(message).trim() : '',
     total,
-    status: 'pending'
+    status: 'preparation',
+    invoiceNumber
   };
 }
 
@@ -332,10 +324,37 @@ app.get('/api/orders', async (req, res) => {
   }
 });
 
+app.get('/api/orders/user/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const orders = await all('SELECT * FROM orders WHERE user_id = ? ORDER BY id DESC', [Number(userId)]);
+    const enrichedOrders = [];
+
+    for (const order of orders) {
+      const items = await all(`
+        SELECT oi.*, p.name AS product_name
+        FROM order_items oi
+        LEFT JOIN products p ON p.id = oi.product_id
+        WHERE oi.order_id = ?
+        ORDER BY oi.id DESC
+      `, [order.id]);
+
+      enrichedOrders.push({
+        ...order,
+        items
+      });
+    }
+
+    res.json(enrichedOrders);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.patch('/api/orders/:id/status', async (req, res) => {
   const { id } = req.params;
   const { status } = req.body || {};
-  const allowed = ['pending', 'confirmed', 'shipped', 'delivered'];
+  const allowed = ['preparation', 'en_route', 'livree', 'pending', 'confirmed', 'shipped', 'delivered'];
 
   if (!allowed.includes(status)) {
     return res.status(400).json({ error: 'Statut invalide.' });
@@ -348,6 +367,38 @@ app.patch('/api/orders/:id/status', async (req, res) => {
     }
 
     await run('UPDATE orders SET status = ? WHERE id = ?', [status, Number(id)]);
+    const updated = await get('SELECT * FROM orders WHERE id = ?', [Number(id)]);
+    return res.json(updated);
+  } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+});
+
+app.patch('/api/orders/:id/rating', async (req, res) => {
+  const { id } = req.params;
+  const { delivery_rating, shop_rating, delivery_review, shop_review } = req.body || {};
+
+  try {
+    const current = await get('SELECT id FROM orders WHERE id = ?', [Number(id)]);
+    if (!current) {
+      return res.status(404).json({ error: 'Commande introuvable.' });
+    }
+
+    await run(`
+      UPDATE orders SET
+        delivery_rating = ?,
+        shop_rating = ?,
+        delivery_review = ?,
+        shop_review = ?
+      WHERE id = ?
+    `, [
+      delivery_rating !== undefined ? Number(delivery_rating) : null,
+      shop_rating !== undefined ? Number(shop_rating) : null,
+      delivery_review ? String(delivery_review).trim() : null,
+      shop_review ? String(shop_review).trim() : null,
+      Number(id)
+    ]);
+
     const updated = await get('SELECT * FROM orders WHERE id = ?', [Number(id)]);
     return res.json(updated);
   } catch (error) {
