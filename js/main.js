@@ -329,6 +329,7 @@ function renderUserOrders(orders) {
             <span class="invoice-badge">${order.invoice_number || 'Facture en cours'}</span>
           </div>
           <p><strong>Passée le :</strong> ${formatDateTime(order.created_at)}</p>
+          <p><strong>Livreur :</strong> ${order.delivery_name || 'Livreur GBS'}</p>
           <p>${getStatusLabel(status)}</p>
           <div class="tracking-steps">
             ${statusOrder.map((step, index) => `
@@ -624,6 +625,7 @@ function bindAdminPanel() {
             <p>${order.customer_name || 'Client'} • ${order.customer_phone || 'Sans téléphone'}</p>
             <p>Commande le : ${formatDateTime(order.created_at)}</p>
             <p>${order.city || 'Ville non précisée'} • ${formatPrice(order.total)}</p>
+            <p>Livreur : ${order.delivery_name || 'Livreur GBS'}</p>
             <p>Facture : ${order.invoice_number || 'À générer'}</p>
             <p>Statut : ${statusLabels[orderStatus] || orderStatus}</p>
             <ul>${items || '<li>Produit unique</li>'}</ul>
