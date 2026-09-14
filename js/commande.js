@@ -143,7 +143,11 @@ if (form) {
       texte += `— Facture : ${data.invoiceNumber || 'À générer'}\n`;
 
       const lienWhatsApp = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(texte)}`;
-      window.open(lienWhatsApp, '_blank');
+      const whatsappPopup = window.open(lienWhatsApp, '_blank', 'noopener,noreferrer');
+      if (!whatsappPopup) {
+        window.location.href = lienWhatsApp;
+        return;
+      }
       alert('Commande enregistrée. Vous pouvez suivre son statut dans votre compte.');
       window.location.href = 'compte.html';
     } catch (error) {

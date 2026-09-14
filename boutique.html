@@ -25,7 +25,10 @@
   </div>
   <div class="nav-action-icons">
     <button type="button" class="icon-btn icon-search" aria-label="Rechercher">⌕</button>
-    <a href="boutique.html" class="icon-btn icon-cart" aria-label="Panier">🛍</a>
+    <a href="boutique.html" class="icon-btn icon-cart" aria-label="Panier">
+      🛍
+      <span class="cart-badge" id="cart-count-badge">0</span>
+    </a>
   </div>
 </nav>
 
@@ -61,6 +64,22 @@
   </div>
 
   <div id="catalog-sections" class="catalog-sections"></div>
+</section>
+
+<section class="cart-shell">
+  <div class="cart-summary-panel" id="cart-summary-panel">
+    <div class="cart-summary-header">
+      <div>
+        <div class="eyebrow">Panier</div>
+        <h3>Votre sélection</h3>
+      </div>
+      <span class="cart-summary-total" id="cart-total">0 FCFA</span>
+    </div>
+    <div id="cart-items" class="cart-items">
+      <p class="cart-empty">Aucun bijou dans le panier pour le moment.</p>
+    </div>
+    <a href="commander.html" class="btn btn-primary cart-cta">Finaliser ma commande</a>
+  </div>
 </section>
 
 <footer>

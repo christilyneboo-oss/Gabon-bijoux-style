@@ -1,6 +1,7 @@
 const STORAGE_KEYS = {
   currentUser: 'gabon_bijoux_current_user',
-  deliveryConfig: 'gabon_bijoux_delivery_config'
+  deliveryConfig: 'gabon_bijoux_delivery_config',
+  cart: 'gabon_bijoux_cart'
 };
 
 const DEFAULT_DELIVERY = {
@@ -46,6 +47,148 @@ function setCurrentUser(user) {
     return;
   }
   localStorage.setItem(STORAGE_KEYS.currentUser, JSON.stringify(user));
+}
+
+function getCart() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.cart) || '[]');
+    return Array.isArray(saved) ? saved : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function saveCart(cart) {
+  localStorage.setItem(STORAGE_KEYS.cart, JSON.stringify(cart));
+}
+
+function addProductToCart(product) {
+  if (!product) return;
+
+  const cart = getCart();
+  const itemIndex = cart.findIndex((item) => String(item.id) === String(product.id));
+
+  if (itemIndex >= 0) {
+    cart[itemIndex].quantity = Number(cart[itemIndex].quantity || 1) + 1;
+  } else {
+    cart.push({
+      id: Number(product.id),
+      name: String(product.name || 'Bijou'),
+      price: Number(product.price || 0),
+      image: product.image || 'images/placeholder.svg',
+      quantity: 1
+    });
+  }
+
+  saveCart(cart);
+  renderCartSummary();
+}
+
+function updateCartItemQuantity(productId, delta) {
+  const cart = getCart();
+  const nextCart = cart
+    .map((item) => {
+      if (String(item.id) !== String(productId)) return item;
+      const quantity = Number(item.quantity || 1) + delta;
+      return quantity > 0 ? { ...item, quantity } : null;
+    })
+    .filter(Boolean);
+
+  saveCart(nextCart);
+  renderCartSummary();
+}
+
+function removeCartItem(productId) {
+  const nextCart = getCart().filter((item) => String(item.id) !== String(productId));
+  saveCart(nextCart);
+  renderCartSummary();
+}
+
+function handleCartAction(event) {
+  const button = event.target.closest('[data-cart-action]');
+  if (!button) return;
+
+  const { cartAction, cartId } = button.dataset;
+  if (!cartId) return;
+
+  if (cartAction === 'increase') {
+    updateCartItemQuantity(cartId, 1);
+    return;
+  }
+
+  if (cartAction === 'decrease') {
+    updateCartItemQuantity(cartId, -1);
+    return;
+  }
+
+  if (cartAction === 'remove') {
+    removeCartItem(cartId);
+  }
+}
+
+function renderCartSummary() {
+  const cart = getCart();
+  const badge = document.getElementById('cart-count-badge');
+  const itemsContainer = document.getElementById('cart-items');
+  const totalElement = document.getElementById('cart-total');
+
+  const totalQuantity = cart.reduce((sum, item) => sum + Number(item.quantity || 1), 0);
+  const totalAmount = cart.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 1), 0);
+
+  if (badge) {
+    badge.textContent = String(totalQuantity);
+    badge.style.display = totalQuantity > 0 ? 'inline-flex' : 'none';
+  }
+
+  if (!itemsContainer) return;
+
+  if (!cart.length) {
+    itemsContainer.innerHTML = '<p class="cart-empty">Aucun bijou dans le panier pour le moment.</p>';
+    if (totalElement) totalElement.textContent = '0 FCFA';
+    return;
+  }
+
+  itemsContainer.innerHTML = cart.map((item) => `
+    <div class="cart-item">
+      <div class="cart-item-info">
+        <img class="cart-item-thumb" src="${item.image || 'images/placeholder.svg'}" alt="${item.name}" onerror="this.src='images/placeholder.svg'">
+        <div class="cart-item-meta">
+          <span class="cart-item-name">${item.name}</span>
+          <span class="cart-item-qty">Qté : ${item.quantity}</span>
+        </div>
+      </div>
+      <div class="cart-item-actions">
+        <div class="cart-qty-controls">
+          <button type="button" class="qty-btn" data-cart-action="decrease" data-cart-id="${item.id}" aria-label="Retirer une quantité">−</button>
+          <span class="qty-value">${item.quantity}</span>
+          <button type="button" class="qty-btn" data-cart-action="increase" data-cart-id="${item.id}" aria-label="Ajouter une quantité">+</button>
+        </div>
+        <button type="button" class="remove-item-btn" data-cart-action="remove" data-cart-id="${item.id}">Supprimer</button>
+      </div>
+      <span class="cart-item-price">${formatPrice(Number(item.price || 0) * Number(item.quantity || 1))}</span>
+    </div>
+  `).join('');
+
+  if (totalElement) {
+    totalElement.textContent = formatPrice(totalAmount);
+  }
+}
+
+function bindCartButtons() {
+  document.querySelectorAll('.favorite-btn').forEach((button) => {
+    button.addEventListener('click', () => {
+      const product = {
+        id: button.dataset.productId,
+        name: button.dataset.productName,
+        price: Number(button.dataset.productPrice || 0),
+        image: button.dataset.productImage || 'images/placeholder.svg'
+      };
+
+      addProductToCart(product);
+      button.classList.add('is-added');
+      button.setAttribute('aria-label', 'Déjà ajouté au panier');
+    });
+  });
 }
 
 function formatPrice(value) {
@@ -250,13 +393,35 @@ function renderProductCards() {
                   <article class="card reveal">
                     <div class="card-media">
                       <img src="${product.image || 'images/placeholder.svg'}" alt="${product.name}" onerror="this.src='images/placeholder.svg'">
+                      <button
+                        type="button"
+                        class="favorite-btn"
+                        data-product-id="${product.id}"
+                        data-product-name="${product.name}"
+                        data-product-price="${product.price}"
+                        data-product-image="${product.image || 'images/placeholder.svg'}"
+                        aria-label="Ajouter ${product.name} au panier"
+                        title="Ajouter au panier"
+                      >♥</button>
                     </div>
                     <div class="card-body">
                       <div class="card-code">RÉF. ${String(product.id).toUpperCase()} — ${String(product.category).toUpperCase()}</div>
                       <div class="card-name">${product.name}</div>
                       <div class="card-price">${formatPrice(product.price)}</div>
                       <p class="card-description">${product.description || 'Bijou premium pour tous les jours.'}</p>
-                      <a href="commander.html?produit=${encodeURIComponent(product.name)}&prix=${product.price}" class="card-cta">Commander →</a>
+                      <div class="card-actions">
+                        <a href="commander.html?produit=${encodeURIComponent(product.name)}&prix=${product.price}" class="card-cta">Commander →</a>
+                        <button
+                          type="button"
+                          class="favorite-btn add-to-cart-btn"
+                          data-product-id="${product.id}"
+                          data-product-name="${product.name}"
+                          data-product-price="${product.price}"
+                          data-product-image="${product.image || 'images/placeholder.svg'}"
+                          aria-label="Ajouter ${product.name} au panier"
+                          title="Ajouter au panier"
+                        >🛍</button>
+                      </div>
                     </div>
                   </article>
                 `).join('')}
@@ -296,13 +461,35 @@ function renderProductCards() {
         <article class="card reveal">
           <div class="card-media">
             <img src="${product.image || 'images/placeholder.svg'}" alt="${product.name}" onerror="this.src='images/placeholder.svg'">
+            <button
+              type="button"
+              class="favorite-btn"
+              data-product-id="${product.id}"
+              data-product-name="${product.name}"
+              data-product-price="${product.price}"
+              data-product-image="${product.image || 'images/placeholder.svg'}"
+              aria-label="Ajouter ${product.name} au panier"
+              title="Ajouter au panier"
+            >♥</button>
           </div>
           <div class="card-body">
             <div class="card-code">RÉF. ${String(product.id).toUpperCase()} — ${String(product.category).toUpperCase()}</div>
             <div class="card-name">${product.name}</div>
             <div class="card-price">${formatPrice(product.price)}</div>
             <p class="card-description">${product.description || 'Bijou premium pour tous les jours.'}</p>
-            <a href="commander.html?produit=${encodeURIComponent(product.name)}&prix=${product.price}" class="card-cta">Commander →</a>
+            <div class="card-actions">
+              <a href="commander.html?produit=${encodeURIComponent(product.name)}&prix=${product.price}" class="card-cta">Commander →</a>
+              <button
+                type="button"
+                class="favorite-btn add-to-cart-btn"
+                data-product-id="${product.id}"
+                data-product-name="${product.name}"
+                data-product-price="${product.price}"
+                data-product-image="${product.image || 'images/placeholder.svg'}"
+                aria-label="Ajouter ${product.name} au panier"
+                title="Ajouter au panier"
+              >🛍</button>
+            </div>
           </div>
         </article>
       `).join('');
@@ -330,17 +517,28 @@ function renderProductCards() {
     });
 }
 
+function normalizeOrderStatus(status) {
+  const value = String(status || 'preparation').trim().toLowerCase();
+  const map = {
+    preparation: 'preparation',
+    pending: 'preparation',
+    confirmed: 'preparation',
+    en_route: 'en_route',
+    shipped: 'en_route',
+    livree: 'livree',
+    delivered: 'livree'
+  };
+  return map[value] || 'preparation';
+}
+
 function getStatusLabel(status) {
+  const normalized = normalizeOrderStatus(status);
   const labels = {
     preparation: 'Préparation de la commande',
     en_route: 'Livreur en route',
-    livree: 'Livrée',
-    pending: 'En attente',
-    confirmed: 'Confirmée',
-    shipped: 'Expédiée',
-    delivered: 'Livrée'
+    livree: 'Livrée'
   };
-  return labels[status] || 'En cours';
+  return labels[normalized] || 'En cours';
 }
 
 function renderUserOrders(orders) {
@@ -355,8 +553,8 @@ function renderUserOrders(orders) {
   const statusOrder = ['preparation', 'en_route', 'livree'];
 
   container.innerHTML = orders.map((order) => {
-    const status = order.status || 'preparation';
-    const currentIndex = statusOrder.includes(status) ? statusOrder.indexOf(status) : 0;
+    const normalizedStatus = normalizeOrderStatus(order.status);
+    const currentIndex = statusOrder.includes(normalizedStatus) ? statusOrder.indexOf(normalizedStatus) : 0;
     const items = (order.items || []).map((item) => `
       <li>${item.product_name || 'Produit'} × ${item.quantity} — ${formatPrice(Number(item.price || 0) * Number(item.quantity || 0))}</li>
     `).join('');
@@ -370,7 +568,7 @@ function renderUserOrders(orders) {
           </div>
           <p><strong>Passée le :</strong> ${formatDateTime(order.created_at)}</p>
           <p><strong>Livreur :</strong> ${getDeliveryInfo(order).name} • <a href="${buildCourierLink(getDeliveryInfo(order).phone)}">${getDeliveryInfo(order).phone}</a></p>
-          <p>${getStatusLabel(status)}</p>
+          <p>${getStatusLabel(normalizedStatus)}</p>
           <div class="tracking-steps">
             ${statusOrder.map((step, index) => `
               <div class="tracking-step ${index <= currentIndex ? 'is-active' : ''}">
@@ -682,9 +880,13 @@ function bindAdminPanel() {
         <li>${item.product_name || 'Produit'} × ${item.quantity} — ${formatPrice(item.price * item.quantity)}</li>
       `).join('');
 
-      const orderStatus = order.status || 'preparation';
-      const nextStatus = orderStatus === 'preparation' ? 'en_route' : orderStatus === 'en_route' ? 'livree' : orderStatus === 'pending' ? 'confirmed' : orderStatus === 'confirmed' ? 'shipped' : orderStatus === 'shipped' ? 'delivered' : 'preparation';
-      const nextLabel = orderStatus === 'preparation' ? 'Mettre en route' : orderStatus === 'en_route' ? 'Marquer livrée' : orderStatus === 'pending' ? 'Valider' : orderStatus === 'confirmed' ? 'Expédier' : orderStatus === 'shipped' ? 'Livrer' : 'Terminer';
+      const orderStatus = normalizeOrderStatus(order.status);
+      const nextStatus = orderStatus === 'preparation' ? 'en_route' : orderStatus === 'en_route' ? 'livree' : 'livree';
+      const nextLabel = orderStatus === 'preparation' ? 'Mettre en route' : orderStatus === 'en_route' ? 'Marquer livrée' : 'Livrée';
+      const reviews = [
+        order.delivery_review ? `<p><strong>Commentaire livreur :</strong> ${escapeHtml(order.delivery_review)}</p>` : '',
+        order.shop_review ? `<p><strong>Commentaire boutique :</strong> ${escapeHtml(order.shop_review)}</p>` : ''
+      ].filter(Boolean).join('');
 
       return `
         <div class="admin-item">
@@ -697,9 +899,10 @@ function bindAdminPanel() {
             <p>Facture : ${order.invoice_number || 'À générer'}</p>
             <p>Statut : ${statusLabels[orderStatus] || orderStatus}</p>
             <ul>${items || '<li>Produit unique</li>'}</ul>
+            ${reviews ? `<div class="rating-box">${reviews}</div>` : ''}
           </div>
           <div class="admin-actions">
-            <button type="button" data-order-status="${order.id}" data-next-status="${nextStatus}" class="btn btn-small btn-primary">${nextLabel}</button>
+            ${orderStatus === 'livree' ? '<span class="invoice-badge">Livrée</span>' : `<button type="button" data-order-status="${order.id}" data-next-status="${nextStatus}" class="btn btn-small btn-primary">${nextLabel}</button>`}
           </div>
         </div>
       `;
@@ -815,6 +1018,16 @@ function setupAdminMenuLink() {
   });
 }
 
+function escapeHtml(value) {
+  return String(value || '').replace(/[&<>"']/g, (char) => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  }[char]));
+}
+
 function bindTrackingPage() {
   const trackingForm = document.getElementById('tracking-order-form');
   const trackingResult = document.getElementById('tracking-order-result');
@@ -836,14 +1049,15 @@ function bindTrackingPage() {
         return;
       }
 
-      const currentStatus = getStatusLabel(order.status || 'preparation');
+      const normalizedStatus = normalizeOrderStatus(order.status);
+      const currentStatus = getStatusLabel(normalizedStatus);
       const courier = getDeliveryInfo(order);
       const orderItems = (order.items || []).map((item) => `
         <li>${item.product_name || 'Produit'} × ${item.quantity} — ${formatPrice(Number(item.price || 0) * Number(item.quantity || 0))}</li>
       `).join('');
 
       const statusSteps = ['preparation', 'en_route', 'livree'];
-      const currentIndex = statusSteps.includes(order.status || 'preparation') ? statusSteps.indexOf(order.status) : 0;
+      const currentIndex = statusSteps.includes(normalizedStatus) ? statusSteps.indexOf(normalizedStatus) : 0;
 
       trackingResult.innerHTML = `
         <div class="tracking-panel">
@@ -928,6 +1142,12 @@ function setupObserver() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  const cartItemsContainer = document.getElementById('cart-items');
+  if (cartItemsContainer) {
+    cartItemsContainer.addEventListener('click', handleCartAction);
+  }
+
+  renderCartSummary();
   renderProductCards();
   bindCatalogSearch();
   bindExpandableContent();
@@ -938,4 +1158,5 @@ document.addEventListener('DOMContentLoaded', () => {
   setupAdminMenuLink();
   setupBurgerMenu();
   setupObserver();
+  bindCartButtons();
 });

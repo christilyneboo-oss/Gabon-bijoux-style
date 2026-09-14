@@ -138,10 +138,42 @@ async function initDatabase() {
     }
   }
 
+  const defaultProducts = [
+    { name: 'Ensemble Étoile', category: 'Ensembles', price: 32000, stock: 5, description: 'Set chic pour soirées et événements.', image: 'images/placeholder.svg' },
+    { name: 'Bracelet Luna', category: 'Bracelets', price: 12000, stock: 10, description: 'Bracelet fin, léger et élégant.', image: 'images/placeholder.svg' },
+    { name: 'Boucle Dorée', category: 'Boucles', price: 14000, stock: 8, description: 'Boucle classique pour un look moderne.', image: 'images/placeholder.svg' },
+    { name: 'Bague Aster', category: 'Bagues', price: 16000, stock: 7, description: 'Bague raffinée avec finesse et présence.', image: 'images/placeholder.svg' },
+    { name: 'Collier Solène', category: 'Colliers', price: 21000, stock: 6, description: 'Collier chic pour les looks premium.', image: 'images/placeholder.svg' },
+    { name: 'Chevillière Éclat', category: 'Chevillères', price: 18000, stock: 9, description: 'Chevillière élégante pour une touche subtile.', image: 'images/placeholder.svg' }
+  ];
+
+  const productCount = await get('SELECT COUNT(*) AS count FROM products');
+  if (!productCount || Number(productCount.count || 0) === 0) {
+    for (const product of defaultProducts) {
+      await run(
+        'INSERT INTO products (name, category, price, stock, description, image) VALUES (?, ?, ?, ?, ?, ?)',
+        [product.name, product.category, product.price, product.stock, product.description, product.image]
+      );
+    }
+  }
 }
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(rootDir));
+
+function normalizeOrderStatus(status) {
+  const value = String(status || 'preparation').trim().toLowerCase();
+  const map = {
+    preparation: 'preparation',
+    pending: 'preparation',
+    confirmed: 'preparation',
+    en_route: 'en_route',
+    shipped: 'en_route',
+    livree: 'livree',
+    delivered: 'livree'
+  };
+  return map[value] || 'preparation';
+}
 
 async function createOrderFromPayload(payload) {
   const { userId, items, name, telephone, city, message, deliveryName, deliveryPhone } = payload || {};
@@ -357,9 +389,10 @@ app.get('/api/orders/user/:userId', async (req, res) => {
 app.patch('/api/orders/:id/status', async (req, res) => {
   const { id } = req.params;
   const { status } = req.body || {};
-  const allowed = ['preparation', 'en_route', 'livree', 'pending', 'confirmed', 'shipped', 'delivered'];
+  const normalized = normalizeOrderStatus(status);
+  const allowed = ['preparation', 'en_route', 'livree'];
 
-  if (!allowed.includes(status)) {
+  if (!allowed.includes(normalized)) {
     return res.status(400).json({ error: 'Statut invalide.' });
   }
 
@@ -369,7 +402,7 @@ app.patch('/api/orders/:id/status', async (req, res) => {
       return res.status(404).json({ error: 'Commande introuvable.' });
     }
 
-    await run('UPDATE orders SET status = ? WHERE id = ?', [status, Number(id)]);
+    await run('UPDATE orders SET status = ? WHERE id = ?', [normalized, Number(id)]);
     const updated = await get('SELECT * FROM orders WHERE id = ?', [Number(id)]);
     return res.json(updated);
   } catch (error) {
