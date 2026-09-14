@@ -66,6 +66,21 @@
   <div id="catalog-sections" class="catalog-sections"></div>
 </section>
 
+<div class="product-modal" id="product-modal" hidden>
+  <div class="product-modal-backdrop" data-close-product-modal></div>
+  <section class="product-modal-panel" role="dialog" aria-modal="true" aria-labelledby="product-modal-name">
+    <button type="button" class="product-modal-close" data-close-product-modal aria-label="Fermer">×</button>
+    <img id="product-modal-image" class="product-modal-image" src="images/placeholder.svg" alt="">
+    <div class="product-modal-content">
+      <div class="eyebrow" id="product-modal-category">Bijou</div>
+      <h2 id="product-modal-name">Bijou</h2>
+      <p id="product-modal-description" class="card-description"></p>
+      <strong id="product-modal-price" class="product-modal-price">0 FCFA</strong>
+      <button type="button" class="btn btn-primary product-modal-add" id="product-modal-add">Ajouter au panier</button>
+    </div>
+  </section>
+</div>
+
 <section class="cart-shell">
   <div class="cart-summary-panel" id="cart-summary-panel">
     <div class="cart-summary-header">

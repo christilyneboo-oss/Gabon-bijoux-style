@@ -174,20 +174,76 @@ function renderCartSummary() {
   }
 }
 
-function bindCartButtons() {
-  document.querySelectorAll('.favorite-btn').forEach((button) => {
-    button.addEventListener('click', () => {
-      const product = {
-        id: button.dataset.productId,
-        name: button.dataset.productName,
-        price: Number(button.dataset.productPrice || 0),
-        image: button.dataset.productImage || 'images/placeholder.svg'
-      };
+function getProductFromElement(element) {
+  const data = element?.dataset || {};
+  return {
+    id: data.productId,
+    name: data.productName,
+    price: Number(data.productPrice || 0),
+    image: data.productImage || 'images/placeholder.svg',
+    category: data.productCategory || 'Bijou',
+    description: data.productDescription || 'Bijou premium pour tous les jours.'
+  };
+}
 
-      addProductToCart(product);
-      button.classList.add('is-added');
-      button.setAttribute('aria-label', 'Déjà ajouté au panier');
-    });
+function openProductModal(product) {
+  const modal = document.getElementById('product-modal');
+  if (!modal) return;
+
+  document.getElementById('product-modal-image').src = product.image;
+  document.getElementById('product-modal-image').alt = product.name;
+  document.getElementById('product-modal-category').textContent = product.category;
+  document.getElementById('product-modal-name').textContent = product.name;
+  document.getElementById('product-modal-description').textContent = product.description;
+  document.getElementById('product-modal-price').textContent = formatPrice(product.price);
+  const modalAddButton = document.getElementById('product-modal-add');
+  modalAddButton.textContent = 'Ajouter au panier';
+  modalAddButton.classList.remove('is-added');
+  Object.assign(modalAddButton.dataset, {
+    productId: product.id,
+    productName: product.name,
+    productPrice: product.price,
+    productImage: product.image
+  });
+  modal.hidden = false;
+  document.body.classList.add('modal-open');
+}
+
+function closeProductModal() {
+  const modal = document.getElementById('product-modal');
+  if (!modal) return;
+  modal.hidden = true;
+  document.body.classList.remove('modal-open');
+}
+
+function bindCartButtons() {
+  document.addEventListener('click', (event) => {
+    const closeButton = event.target.closest('[data-close-product-modal]');
+    if (closeButton) {
+      closeProductModal();
+      return;
+    }
+
+    const addButton = event.target.closest('.favorite-btn, .product-modal-add');
+    if (addButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      addProductToCart(getProductFromElement(addButton));
+      addButton.classList.add('is-added');
+      addButton.setAttribute('aria-label', 'Déjà ajouté au panier');
+      if (addButton.classList.contains('product-modal-add')) {
+        addButton.textContent = 'Ajouté au panier';
+        setTimeout(closeProductModal, 350);
+      }
+      return;
+    }
+
+    const card = event.target.closest('.card[data-product-id]');
+    if (card) openProductModal(getProductFromElement(card));
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeProductModal();
   });
 }
 
@@ -390,7 +446,7 @@ function renderProductCards() {
               </div>
               <div class="shop-grid">
                 ${items.map((product) => `
-                  <article class="card reveal">
+                  <article class="card reveal" data-product-id="${product.id}" data-product-name="${product.name}" data-product-price="${product.price}" data-product-image="${product.image || 'images/placeholder.svg'}" data-product-category="${product.category}" data-product-description="${product.description || 'Bijou premium pour tous les jours.'}">
                     <div class="card-media">
                       <img src="${product.image || 'images/placeholder.svg'}" alt="${product.name}" onerror="this.src='images/placeholder.svg'">
                       <button
@@ -420,7 +476,7 @@ function renderProductCards() {
                           data-product-image="${product.image || 'images/placeholder.svg'}"
                           aria-label="Ajouter ${product.name} au panier"
                           title="Ajouter au panier"
-                        >🛍</button>
+                        >Ajouter au panier</button>
                       </div>
                     </div>
                   </article>
@@ -458,7 +514,7 @@ function renderProductCards() {
       if (!grid) return;
 
       grid.innerHTML = products.map((product) => `
-        <article class="card reveal">
+        <article class="card reveal" data-product-id="${product.id}" data-product-name="${product.name}" data-product-price="${product.price}" data-product-image="${product.image || 'images/placeholder.svg'}" data-product-category="${product.category}" data-product-description="${product.description || 'Bijou premium pour tous les jours.'}">
           <div class="card-media">
             <img src="${product.image || 'images/placeholder.svg'}" alt="${product.name}" onerror="this.src='images/placeholder.svg'">
             <button
@@ -488,7 +544,7 @@ function renderProductCards() {
                 data-product-image="${product.image || 'images/placeholder.svg'}"
                 aria-label="Ajouter ${product.name} au panier"
                 title="Ajouter au panier"
-              >🛍</button>
+                >Ajouter au panier</button>
             </div>
           </div>
         </article>
