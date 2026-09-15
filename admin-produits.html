@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Produits — Administration — Gabon Bijoux Style</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<nav class="minimal-nav">
+  <div class="menu-wrap">
+    <button type="button" class="menu-btn" aria-label="Menu">☰</button>
+    <div class="menu-panel" id="menu-panel">
+      <a href="index.html">Accueil</a>
+      <a href="boutique.html">Boutique</a>
+      <a href="admin.html">Ajouter un bijou</a>
+      <a href="admin-produits.html">Produits enregistrés</a>
+      <a href="compte.html">Compte</a>
+    </div>
+  </div>
+  <div class="brand-lockup">
+    <div class="brand-name brand-name-short">GBS</div>
+  </div>
+  <div class="nav-action-icons">
+    <a href="panier.html" class="icon-btn icon-cart" aria-label="Panier">🛍</a>
+  </div>
+</nav>
+
+<section class="page-header">
+  <div class="eyebrow">Admin</div>
+  <h1>Produits enregistrés</h1>
+</section>
+
+<section id="admin-shell">
+  <div class="admin-layout admin-products-layout">
+    <div class="admin-card admin-products-card">
+      <div class="admin-products-heading">
+        <div>
+          <h3>Votre catalogue</h3>
+          <p id="admin-message">Chargement des produits...</p>
+        </div>
+        <a href="admin.html" class="btn btn-primary">Ajouter un article</a>
+      </div>
+      <div id="admin-product-list" class="admin-list"></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-bottom">
+    <span>© 2026 Gabon Bijoux Style</span>
+    <span>Administration</span>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

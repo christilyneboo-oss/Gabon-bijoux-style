@@ -861,6 +861,11 @@ function bindAdminPanel() {
 
     productList.querySelectorAll('[data-edit]').forEach((button) => {
       button.addEventListener('click', async () => {
+        if (!adminForm) {
+          window.location.href = `admin.html?edit=${button.dataset.edit}`;
+          return;
+        }
+
         try {
           const products = await fetchJson('/api/products');
           const product = products.find((item) => String(item.id) === String(button.dataset.edit));
@@ -959,7 +964,20 @@ function bindAdminPanel() {
 
   if (adminForm) {
     fetchJson('/api/products')
-      .then(renderAdminList)
+      .then((products) => {
+        renderAdminList(products);
+        const editId = new URLSearchParams(window.location.search).get('edit');
+        if (!editId || !adminForm) return;
+        const product = products.find((item) => String(item.id) === String(editId));
+        if (!product) return;
+        document.getElementById('product-id').value = product.id;
+        document.getElementById('product-name').value = product.name;
+        document.getElementById('product-category').value = product.category;
+        document.getElementById('product-price').value = product.price;
+        document.getElementById('product-stock').value = Number(product.stock || 0);
+        document.getElementById('product-description').value = product.description;
+        updateImagePreview(product.image || 'images/placeholder.svg');
+      })
       .catch((error) => {
         if (productList) productList.innerHTML = `<p>${error.message}</p>`;
       });
