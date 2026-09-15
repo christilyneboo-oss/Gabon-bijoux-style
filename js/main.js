@@ -196,15 +196,6 @@ function openProductModal(product) {
   document.getElementById('product-modal-name').textContent = product.name;
   document.getElementById('product-modal-description').textContent = product.description;
   document.getElementById('product-modal-price').textContent = formatPrice(product.price);
-  const modalAddButton = document.getElementById('product-modal-add');
-  modalAddButton.textContent = 'Ajouter au panier';
-  modalAddButton.classList.remove('is-added');
-  Object.assign(modalAddButton.dataset, {
-    productId: product.id,
-    productName: product.name,
-    productPrice: product.price,
-    productImage: product.image
-  });
   modal.hidden = false;
   document.body.classList.add('modal-open');
 }
@@ -224,17 +215,13 @@ function bindCartButtons() {
       return;
     }
 
-    const addButton = event.target.closest('.favorite-btn, .product-modal-add');
+    const addButton = event.target.closest('.favorite-btn');
     if (addButton) {
       event.preventDefault();
       event.stopPropagation();
       addProductToCart(getProductFromElement(addButton));
       addButton.classList.add('is-added');
       addButton.setAttribute('aria-label', 'Déjà ajouté au panier');
-      if (addButton.classList.contains('product-modal-add')) {
-        addButton.textContent = 'Ajouté au panier';
-        setTimeout(closeProductModal, 350);
-      }
       return;
     }
 
@@ -449,16 +436,6 @@ function renderProductCards() {
                   <article class="card reveal" data-product-id="${product.id}" data-product-name="${product.name}" data-product-price="${product.price}" data-product-image="${product.image || 'images/placeholder.svg'}" data-product-category="${product.category}" data-product-description="${product.description || 'Bijou premium pour tous les jours.'}">
                     <div class="card-media">
                       <img src="${product.image || 'images/placeholder.svg'}" alt="${product.name}" onerror="this.src='images/placeholder.svg'">
-                      <button
-                        type="button"
-                        class="favorite-btn"
-                        data-product-id="${product.id}"
-                        data-product-name="${product.name}"
-                        data-product-price="${product.price}"
-                        data-product-image="${product.image || 'images/placeholder.svg'}"
-                        aria-label="Ajouter ${product.name} au panier"
-                        title="Ajouter au panier"
-                      >♥</button>
                     </div>
                     <div class="card-body">
                       <div class="card-code">RÉF. ${String(product.id).toUpperCase()} — ${String(product.category).toUpperCase()}</div>
@@ -469,14 +446,14 @@ function renderProductCards() {
                         <a href="commander.html?produit=${encodeURIComponent(product.name)}&prix=${product.price}" class="card-cta">Commander →</a>
                         <button
                           type="button"
-                          class="favorite-btn add-to-cart-btn"
+                          class="favorite-btn"
                           data-product-id="${product.id}"
                           data-product-name="${product.name}"
                           data-product-price="${product.price}"
                           data-product-image="${product.image || 'images/placeholder.svg'}"
                           aria-label="Ajouter ${product.name} au panier"
                           title="Ajouter au panier"
-                        >Ajouter au panier</button>
+                        >♥</button>
                       </div>
                     </div>
                   </article>
@@ -517,16 +494,6 @@ function renderProductCards() {
         <article class="card reveal" data-product-id="${product.id}" data-product-name="${product.name}" data-product-price="${product.price}" data-product-image="${product.image || 'images/placeholder.svg'}" data-product-category="${product.category}" data-product-description="${product.description || 'Bijou premium pour tous les jours.'}">
           <div class="card-media">
             <img src="${product.image || 'images/placeholder.svg'}" alt="${product.name}" onerror="this.src='images/placeholder.svg'">
-            <button
-              type="button"
-              class="favorite-btn"
-              data-product-id="${product.id}"
-              data-product-name="${product.name}"
-              data-product-price="${product.price}"
-              data-product-image="${product.image || 'images/placeholder.svg'}"
-              aria-label="Ajouter ${product.name} au panier"
-              title="Ajouter au panier"
-            >♥</button>
           </div>
           <div class="card-body">
             <div class="card-code">RÉF. ${String(product.id).toUpperCase()} — ${String(product.category).toUpperCase()}</div>
@@ -537,14 +504,14 @@ function renderProductCards() {
               <a href="commander.html?produit=${encodeURIComponent(product.name)}&prix=${product.price}" class="card-cta">Commander →</a>
               <button
                 type="button"
-                class="favorite-btn add-to-cart-btn"
+                class="favorite-btn"
                 data-product-id="${product.id}"
                 data-product-name="${product.name}"
                 data-product-price="${product.price}"
                 data-product-image="${product.image || 'images/placeholder.svg'}"
                 aria-label="Ajouter ${product.name} au panier"
                 title="Ajouter au panier"
-                >Ajouter au panier</button>
+                >♥</button>
             </div>
           </div>
         </article>

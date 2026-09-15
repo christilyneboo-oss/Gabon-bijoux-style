@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Boutique — Gabon Bijoux Style</title>
+<title>Votre panier — Gabon Bijoux Style</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -24,7 +24,7 @@
     <div class="brand-name brand-name-short">GBS</div>
   </div>
   <div class="nav-action-icons">
-    <button type="button" class="icon-btn icon-search" aria-label="Rechercher">⌕</button>
+    <a href="boutique.html" class="icon-btn icon-search" aria-label="Rechercher">⌕</a>
     <a href="panier.html" class="icon-btn icon-cart" aria-label="Panier">
       🛍
       <span class="cart-badge" id="cart-count-badge">0</span>
@@ -33,52 +33,28 @@
 </nav>
 
 <section class="page-header">
-  <div class="eyebrow">Catalogue</div>
-  <h1>La boutique</h1>
+  <div class="eyebrow">Votre sélection</div>
+  <h1>Votre panier</h1>
 </section>
 
-<section class="catalog-shell search-shell">
-  <div class="search-panel" aria-label="Recherche rapide">
-    <span class="search-icon">⌕</span>
-    <input id="catalog-search" type="search" placeholder="Rechercher un bijou, un ensemble ou une catégorie..." aria-label="Rechercher un bijou">
-  </div>
-</section>
-
-<section class="catalog-shell">
-  <div class="catalog-header-block">
-    <div>
-      <div class="eyebrow">Nos collections</div>
-      <h2>Une sélection pensée pour chaque style</h2>
+<section class="cart-shell cart-page-shell">
+  <div class="cart-summary-panel" id="cart-summary-panel">
+    <div class="cart-summary-header">
+      <div>
+        <div class="eyebrow">Panier</div>
+        <h3>Vos bijoux sélectionnés</h3>
+      </div>
+      <span class="cart-summary-total" id="cart-total">0 FCFA</span>
     </div>
-    <p>Des pièces raffinées pour sublimer les looks du quotidien, avec des ensembles assortis, des bracelets, des boucles, bagues, colliers et chevillères.</p>
-  </div>
-
-  <div class="catalog-filters" aria-label="Filtres de catégories">
-    <button type="button" class="catalog-filter-btn is-active" data-category-filter="Tous">Tous</button>
-    <button type="button" class="catalog-filter-btn" data-category-filter="Ensembles">Ensembles</button>
-    <button type="button" class="catalog-filter-btn" data-category-filter="Bracelets">Bracelets</button>
-    <button type="button" class="catalog-filter-btn" data-category-filter="Boucles">Boucles</button>
-    <button type="button" class="catalog-filter-btn" data-category-filter="Bagues">Bagues</button>
-    <button type="button" class="catalog-filter-btn" data-category-filter="Colliers">Colliers</button>
-    <button type="button" class="catalog-filter-btn" data-category-filter="Chevillères">Chevillères</button>
-  </div>
-
-  <div id="catalog-sections" class="catalog-sections"></div>
-</section>
-
-<div class="product-modal" id="product-modal" hidden>
-  <div class="product-modal-backdrop" data-close-product-modal></div>
-  <section class="product-modal-panel" role="dialog" aria-modal="true" aria-labelledby="product-modal-name">
-    <button type="button" class="product-modal-close" data-close-product-modal aria-label="Fermer">×</button>
-    <img id="product-modal-image" class="product-modal-image" src="images/placeholder.svg" alt="">
-    <div class="product-modal-content">
-      <div class="eyebrow" id="product-modal-category">Bijou</div>
-      <h2 id="product-modal-name">Bijou</h2>
-      <p id="product-modal-description" class="card-description"></p>
-      <strong id="product-modal-price" class="product-modal-price">0 FCFA</strong>
+    <div id="cart-items" class="cart-items">
+      <p class="cart-empty">Aucun bijou dans le panier pour le moment.</p>
     </div>
-  </section>
-</div>
+    <div class="cart-page-actions">
+      <a href="boutique.html" class="btn btn-ghost">Continuer mes achats</a>
+      <a href="commander.html" class="btn btn-primary cart-cta">Finaliser ma commande</a>
+    </div>
+  </div>
+</section>
 
 <footer>
   <div class="footer-top">
