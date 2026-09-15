@@ -503,22 +503,22 @@ section{ padding:5rem 4vw; }
 }
 
 .category-ensembles{
-  background-image:url('https://upload.wikimedia.org/wikipedia/commons/3/34/Set_of_jewelry_MET_DP122702.jpg');
+  background-image:url('../images/categories/ensembles.jpg'), url('https://upload.wikimedia.org/wikipedia/commons/3/34/Set_of_jewelry_MET_DP122702.jpg');
 }
 .category-bracelets{
-  background-image:url('https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=900&q=85');
+  background-image:url('../images/categories/bracelets.jpg'), url('https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&w=900&q=85');
 }
 .category-boucles{
-  background-image:url('https://images.unsplash.com/photo-1535632787350-4e68ef0ac584?auto=format&fit=crop&w=900&q=85');
+  background-image:url('../images/categories/boucles.jpg'), url('https://images.unsplash.com/photo-1535632787350-4e68ef0ac584?auto=format&fit=crop&w=900&q=85');
 }
 .category-bagues{
-  background-image:url('https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=900&q=85');
+  background-image:url('../images/categories/bagues.jpg'), url('https://images.unsplash.com/photo-1605100804763-247f67b3557e?auto=format&fit=crop&w=900&q=85');
 }
 .category-colliers{
-  background-image:url('https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=900&q=85');
+  background-image:url('../images/categories/colliers.jpg'), url('https://images.unsplash.com/photo-1611652022419-a9419f74343d?auto=format&fit=crop&w=900&q=85');
 }
 .category-chevilleres{
-  background-image:url('https://upload.wikimedia.org/wikipedia/commons/e/e7/Foot_adorned_with_traditional_Indian_anklet_and_sandal.jpg');
+  background-image:url('../images/categories/chevilleres.jpg'), url('https://upload.wikimedia.org/wikipedia/commons/e/e7/Foot_adorned_with_traditional_Indian_anklet_and_sandal.jpg');
 }
 
 @media(max-width:900px){
