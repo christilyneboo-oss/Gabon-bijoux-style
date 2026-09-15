@@ -962,7 +962,7 @@ function bindAdminPanel() {
     });
   }
 
-  if (adminForm) {
+  if (productList) {
     fetchJson('/api/products')
       .then((products) => {
         renderAdminList(products);
@@ -981,7 +981,9 @@ function bindAdminPanel() {
       .catch((error) => {
         if (productList) productList.innerHTML = `<p>${error.message}</p>`;
       });
+  }
 
+  if (adminForm) {
     adminForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       const id = document.getElementById('product-id').value;
