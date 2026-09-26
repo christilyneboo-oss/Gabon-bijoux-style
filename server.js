@@ -235,22 +235,23 @@ app.get('/api/products', async (req, res) => {
 });
 
 app.post('/api/register', async (req, res) => {
-  const { name, email, password } = req.body || {};
-  if (!name || !email || !password) {
-    return res.status(400).json({ error: 'Tous les champs sont requis.' });
+  const { name, password } = req.body || {};
+  if (!name || !password) {
+    return res.status(400).json({ error: 'Nom et mot de passe requis.' });
   }
 
-  const lowerEmail = String(email).trim().toLowerCase();
+  const cleanName = String(name).trim();
+  const generatedEmail = `user-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@local`;
 
   try {
-    const exists = await get('SELECT id FROM users WHERE email = ?', [lowerEmail]);
+    const exists = await get('SELECT id FROM users WHERE name = ?', [cleanName]);
     if (exists) {
-      return res.status(409).json({ error: 'Cet email est déjà inscrit.' });
+      return res.status(409).json({ error: 'Ce nom est déjà utilisé.' });
     }
 
     const userResult = await run('INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)', [
-      String(name).trim(),
-      lowerEmail,
+      cleanName,
+      generatedEmail,
       String(password),
       'user'
     ]);
@@ -263,19 +264,19 @@ app.post('/api/register', async (req, res) => {
 });
 
 app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body || {};
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Email et mot de passe requis.' });
+  const { name, password } = req.body || {};
+  if (!name || !password) {
+    return res.status(400).json({ error: 'Nom et mot de passe requis.' });
   }
 
   try {
     const user = await get(
-      'SELECT id, name, email, role FROM users WHERE email = ? AND password = ?',
-      [String(email).trim().toLowerCase(), String(password)]
+      'SELECT id, name, email, role FROM users WHERE name = ? AND password = ?',
+      [String(name).trim(), String(password)]
     );
 
     if (!user) {
-      return res.status(401).json({ error: 'Email ou mot de passe incorrect.' });
+      return res.status(401).json({ error: 'Nom ou mot de passe incorrect.' });
     }
 
     return res.json(user);

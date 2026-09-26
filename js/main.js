@@ -682,7 +682,6 @@ function bindAuthForms() {
       title.textContent = user.role === 'admin' ? 'Administrateur connecté' : 'Compte client actif';
       profile.innerHTML = `
         <p><strong>Nom :</strong> ${user.name}</p>
-        <p><strong>Email :</strong> ${user.email}</p>
         <p><strong>Rôle :</strong> ${user.role === 'admin' ? 'Admin' : 'Client'}</p>
       `;
     } else {
@@ -696,11 +695,10 @@ function bindAuthForms() {
       event.preventDefault();
       const payload = {
         name: document.getElementById('register-name').value.trim(),
-        email: document.getElementById('register-email').value.trim(),
         password: document.getElementById('register-password').value
       };
 
-      if (!payload.name || !payload.email || !payload.password) {
+      if (!payload.name || !payload.password) {
         alert('Merci de remplir tous les champs.');
         return;
       }
@@ -723,9 +721,14 @@ function bindAuthForms() {
     loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       const payload = {
-        email: document.getElementById('login-email').value.trim(),
+        name: document.getElementById('login-name').value.trim(),
         password: document.getElementById('login-password').value
       };
+
+      if (!payload.name || !payload.password) {
+        alert('Merci de remplir tous les champs.');
+        return;
+      }
 
       try {
         const userData = await fetchJson('/api/login', {
