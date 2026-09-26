@@ -76,6 +76,13 @@ async function initDatabase() {
   await ensureColumn('products', 'stock', 'stock INTEGER NOT NULL DEFAULT 0');
 
   await run(`
+    CREATE TABLE IF NOT EXISTS app_meta (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL DEFAULT ''
+    )
+  `);
+
+  await run(`
     CREATE TABLE IF NOT EXISTS orders (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       user_id INTEGER,
@@ -147,14 +154,18 @@ async function initDatabase() {
     { name: 'Chevillière Éclat', category: 'Chevillères', price: 18000, stock: 9, description: 'Chevillière élégante pour une touche subtile.', image: 'images/placeholder.svg' }
   ];
 
-  const productCount = await get('SELECT COUNT(*) AS count FROM products');
-  if (!productCount || Number(productCount.count || 0) === 0) {
-    for (const product of defaultProducts) {
-      await run(
-        'INSERT INTO products (name, category, price, stock, description, image) VALUES (?, ?, ?, ?, ?, ?)',
-        [product.name, product.category, product.price, product.stock, product.description, product.image]
-      );
+  const seedFlag = await get('SELECT value FROM app_meta WHERE key = ?', ['products_seeded']);
+  if (!seedFlag) {
+    const productCount = await get('SELECT COUNT(*) AS count FROM products');
+    if (!productCount || Number(productCount.count || 0) === 0) {
+      for (const product of defaultProducts) {
+        await run(
+          'INSERT INTO products (name, category, price, stock, description, image) VALUES (?, ?, ?, ?, ?, ?)',
+          [product.name, product.category, product.price, product.stock, product.description, product.image]
+        );
+      }
     }
+    await run('INSERT INTO app_meta (key, value) VALUES (?, ?)', ['products_seeded', '1']);
   }
 }
 

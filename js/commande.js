@@ -1,49 +1,5 @@
 const WHATSAPP_NUMBER = "24107049872";
 
-async function loadProductsIntoSelect() {
-  const produitSelect = document.getElementById('produit');
-  if (!produitSelect) return;
-
-  try {
-    const products = await fetch('/api/products').then((response) => response.json());
-    produitSelect.innerHTML = '<option value="">— Choisir un produit —</option>';
-
-    products.forEach((product) => {
-      const option = document.createElement('option');
-      option.value = String(product.id);
-      option.dataset.name = product.name;
-      option.dataset.price = String(product.price);
-      option.textContent = `${product.name} — ${new Intl.NumberFormat('fr-FR').format(product.price)} FCFA`;
-      produitSelect.appendChild(option);
-    });
-
-    const params = new URLSearchParams(window.location.search);
-    const produit = params.get('produit');
-    const prix = params.get('prix');
-    if (produit) {
-      let found = false;
-      for (const option of produitSelect.options) {
-        if (option.dataset.name === produit || option.value === produit) {
-          option.selected = true;
-          found = true;
-        }
-      }
-
-      if (!found) {
-        const opt = document.createElement('option');
-        opt.value = 'custom';
-        opt.dataset.name = produit;
-        opt.dataset.price = prix || '0';
-        opt.textContent = prix ? `${produit} — ${new Intl.NumberFormat('fr-FR').format(Number(prix))} FCFA` : produit;
-        opt.selected = true;
-        produitSelect.appendChild(opt);
-      }
-    }
-  } catch (error) {
-    console.error('Erreur chargement produits:', error);
-  }
-}
-
 function getCurrentUser() {
   try {
     return JSON.parse(localStorage.getItem('gabon_bijoux_current_user') || 'null');
@@ -53,8 +9,6 @@ function getCurrentUser() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  loadProductsIntoSelect();
-
   const currentUser = getCurrentUser();
   const form = document.getElementById('order-form');
   const nom = document.getElementById('nom');
@@ -68,6 +22,24 @@ window.addEventListener('DOMContentLoaded', () => {
     window.location.href = 'compte.html';
   }
 });
+
+function getOrderItemsFromCart() {
+  try {
+    const cart = JSON.parse(localStorage.getItem('gabon_bijoux_cart') || '[]');
+    if (Array.isArray(cart) && cart.length > 0) {
+      return cart.map((item) => ({
+        productId: Number(item.id || 0),
+        quantity: Number(item.quantity || 1),
+        price: Number(item.price || 0),
+        name: String(item.name || 'Bijou')
+      }));
+    }
+  } catch (error) {
+    return [];
+  }
+
+  return [];
+}
 
 const form = document.getElementById('order-form');
 if (form) {
@@ -84,7 +56,6 @@ if (form) {
     const nom = document.getElementById('nom').value.trim();
     const telephone = document.getElementById('telephone').value.trim();
     const ville = document.getElementById('ville').value.trim();
-    const produitSelect = document.getElementById('produit');
     const quantite = Number(document.getElementById('quantite').value || 1);
     const message = document.getElementById('message').value.trim();
 
@@ -93,15 +64,22 @@ if (form) {
       return;
     }
 
-    const selectedProduct = produitSelect && produitSelect.selectedOptions[0];
-    const productId = Number(selectedProduct?.value || 0);
-    const productName = selectedProduct && selectedProduct.dataset.name
-      ? selectedProduct.dataset.name
-      : 'Produit à confirmer';
-    const productPrice = Number(selectedProduct?.dataset.price || 0);
+    const cartItems = getOrderItemsFromCart();
+    if (!cartItems.length) {
+      alert('Votre panier est vide. Sélectionnez au moins un bijou avant de commander.');
+      window.location.href = 'panier.html';
+      return;
+    }
 
-    if (!productId) {
-      alert('Veuillez sélectionner un produit avant de passer commande.');
+    const normalizedItems = cartItems.map((item) => ({
+      productId: Number(item.productId || 0),
+      quantity: Number(item.quantity || 1) * quantite,
+      price: Number(item.price || 0)
+    }));
+
+    const invalidItem = normalizedItems.find((item) => !Number(item.productId));
+    if (invalidItem) {
+      alert('Une pièce du panier est invalide. Vérifiez votre sélection avant de continuer.');
       return;
     }
 
@@ -118,11 +96,7 @@ if (form) {
           message,
           deliveryName: courier.name,
           deliveryPhone: courier.phone,
-          items: [{
-            productId,
-            quantity: quantite,
-            price: productPrice
-          }]
+          items: normalizedItems
         })
       });
 
@@ -131,19 +105,26 @@ if (form) {
         throw new Error(data?.error || 'La commande n’a pas pu être enregistrée.');
       }
 
+      const firstItemName = cartItems[0]?.name || 'Bijou';
+      const totalItems = normalizedItems.reduce((sum, item) => sum + item.quantity, 0);
+      const totalPrice = normalizedItems.reduce((sum, item) => sum + Number(item.price || 0) * Number(item.quantity || 1), 0);
+
       let texte = 'Bonjour Gabon Bijoux Style, je souhaite confirmer ma commande :\n';
       texte += `— Commande : #${data.id}\n`;
-      texte += `— Produit : ${productName}\n`;
-      texte += `— Quantité : ${quantite}\n`;
+      texte += `— Produit(s) : ${cartItems.map((item) => `${item.name} x ${item.quantity}`).join(' • ')}\n`;
+      texte += `— Quantité totale : ${totalItems}\n`;
       texte += `— Nom : ${nom}\n`;
       texte += `— Téléphone : ${telephone}\n`;
       if (ville) texte += `— Ville : ${ville}\n`;
-      if (productPrice > 0) texte += `— Prix estimé : ${new Intl.NumberFormat('fr-FR').format(productPrice)} FCFA\n`;
+      if (totalPrice > 0) texte += `— Prix estimé : ${new Intl.NumberFormat('fr-FR').format(totalPrice)} FCFA\n`;
       if (message) texte += `— Message : ${message}\n`;
       texte += `— Facture : ${data.invoiceNumber || 'À générer'}\n`;
 
       const lienWhatsApp = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(texte)}`;
       const whatsappPopup = window.open(lienWhatsApp, '_blank', 'noopener,noreferrer');
+
+      localStorage.removeItem('gabon_bijoux_cart');
+
       if (!whatsappPopup) {
         window.location.href = lienWhatsApp;
         return;

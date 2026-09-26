@@ -1095,9 +1095,6 @@ function bindTrackingPage() {
       const normalizedStatus = normalizeOrderStatus(order.status);
       const currentStatus = getStatusLabel(normalizedStatus);
       const courier = getDeliveryInfo(order);
-      const orderItems = (order.items || []).map((item) => `
-        <li>${item.product_name || 'Produit'} × ${item.quantity} — ${formatPrice(Number(item.price || 0) * Number(item.quantity || 0))}</li>
-      `).join('');
 
       const statusSteps = ['preparation', 'en_route', 'livree'];
       const currentIndex = statusSteps.includes(normalizedStatus) ? statusSteps.indexOf(normalizedStatus) : 0;
@@ -1127,12 +1124,6 @@ function bindTrackingPage() {
                 <small>${step === 'preparation' ? 'Préparation' : step === 'en_route' ? 'En route' : 'Livrée'}</small>
               </div>
             `).join('')}
-          </div>
-
-          <div class="invoice-box compact-box">
-            <h4>Contenu de la commande</h4>
-            <ul>${orderItems || '<li>Produit unique</li>'}</ul>
-            <p><strong>Total :</strong> ${formatPrice(Number(order.total || 0))}</p>
           </div>
         </div>
       `;
